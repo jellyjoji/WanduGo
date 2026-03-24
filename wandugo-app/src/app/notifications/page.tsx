@@ -47,8 +47,11 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-lg mx-auto">
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-gray-600">
+      <div className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={() => router.back()}
+          className="text-gray-600 dark:text-gray-400"
+        >
           <svg
             className="w-6 h-6"
             fill="none"
@@ -63,7 +66,9 @@ export default function NotificationsPage() {
             />
           </svg>
         </button>
-        <h1 className="font-semibold text-gray-900">Notifications</h1>
+        <h1 className="font-semibold text-gray-900 dark:text-gray-100">
+          Notifications
+        </h1>
       </div>
 
       <div className="px-4 py-4">
@@ -80,15 +85,19 @@ export default function NotificationsPage() {
                 key={n.id}
                 onClick={() => n.post_id && router.push(`/post/${n.post_id}`)}
                 className={`flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-colors ${
-                  n.read ? "bg-white" : "bg-blue-50"
-                } hover:bg-gray-50 border border-gray-100`}
+                  n.read
+                    ? "bg-white dark:bg-slate-900"
+                    : "bg-blue-50 dark:bg-blue-950"
+                } hover:bg-gray-50 dark:hover:bg-slate-800 border border-gray-100 dark:border-slate-700`}
               >
                 <span className="text-xl">
                   {NOTIFICATION_ICONS[n.type] || "🔔"}
                 </span>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-900">{n.content}</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-sm text-gray-900 dark:text-gray-100">
+                    {n.content}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {timeAgo(n.created_at)}
                   </p>
                 </div>

@@ -86,8 +86,12 @@ export default function MarketplacePage() {
       <div className="max-w-lg mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">🛒 Marketplace</h1>
-            <p className="text-sm text-gray-500">Buy, sell, and group buy</p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              🛒 Marketplace
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Buy, sell, and group buy
+            </p>
           </div>
           <SortSelector value={sort} onChange={setSort} />
         </div>
@@ -107,14 +111,14 @@ export default function MarketplacePage() {
             placeholder="Min $"
             value={priceMin}
             onChange={(e) => setPriceMin(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="number"
             placeholder="Max $"
             value={priceMax}
             onChange={(e) => setPriceMax(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -129,8 +133,12 @@ export default function MarketplacePage() {
           <LoadingSpinner />
         ) : filteredAndSorted.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No items for sale nearby</p>
-            <p className="text-sm text-gray-400 mt-1">List something!</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              No items for sale nearby
+            </p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+              List something!
+            </p>
           </div>
         ) : (
           <div className="space-y-3">

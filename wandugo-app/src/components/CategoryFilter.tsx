@@ -22,7 +22,7 @@ export default function CategoryFilter({
         className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
           selected === "all"
             ? "bg-blue-600 text-white"
-            : "bg-white text-gray-600 border border-gray-200"
+            : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600"
         }`}
       >
         All
@@ -34,7 +34,7 @@ export default function CategoryFilter({
           className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
             selected === cat
               ? "bg-blue-600 text-white"
-              : "bg-white text-gray-600 border border-gray-200"
+              : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600"
           }`}
         >
           {CATEGORY_LABELS[cat] || cat}

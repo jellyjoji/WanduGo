@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LocationProvider } from "@/contexts/LocationContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import BottomNav from "@/components/BottomNav";
+import AuthModal from "@/components/AuthModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,12 +32,18 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-gray-50">
-        <LocationProvider>
-          <main className="flex-1">{children}</main>
-          <BottomNav />
-        </LocationProvider>
+      <body className="min-h-full flex flex-col bg-gray-50 dark:bg-slate-950">
+        <ThemeProvider>
+          <AuthProvider>
+            <LocationProvider>
+              <main className="flex-1">{children}</main>
+              <BottomNav />
+              <AuthModal />
+            </LocationProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

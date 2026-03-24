@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { getSessionId, getUserName } from "@/lib/session";
 import { timeAgo } from "@/lib/utils";
 import { useLocation } from "@/contexts/LocationContext";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Message, Chat } from "@/types/database";
 
 export default function ChatRoomPage() {
@@ -13,6 +14,7 @@ export default function ChatRoomPage() {
   const chatId = params.id as string;
   const router = useRouter();
   const { lat, lng } = useLocation();
+  const { user, openAuthModal } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [chat, setChat] = useState<Chat | null>(null);
   const [newMessage, setNewMessage] = useState("");
@@ -40,7 +42,7 @@ export default function ChatRoomPage() {
     }
     fetchChat();
 
-    // Real-time subscription
+    // Real-time subscription (deduplicates against optimistic updates)
     const channel = supabase
       .channel(`messages-${chatId}`)
       .on(
@@ -52,7 +54,10 @@ export default function ChatRoomPage() {
           filter: `chat_id=eq.${chatId}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          const incoming = payload.new as Message;
+          setMessages((prev) =>
+            prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
+          );
         },
       )
       .subscribe();
@@ -71,15 +76,41 @@ export default function ChatRoomPage() {
     if (!newMessage.trim() || sending) return;
 
     setSending(true);
-    await supabase.from("messages").insert({
-      chat_id: chatId,
-      content: newMessage.trim(),
-      session_id: sessionId,
-      author_name: getUserName(),
-      type: "text",
-    });
+    const content = newMessage.trim();
+    const authorName = getUserName();
 
+    // Optimistic update — show message immediately
+    const optimistic: Message = {
+      id: `pending-${Date.now()}`,
+      chat_id: chatId,
+      content,
+      session_id: sessionId,
+      author_name: authorName,
+      type: "text",
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
     setNewMessage("");
+
+    const { data } = await supabase
+      .from("messages")
+      .insert({
+        chat_id: chatId,
+        content,
+        session_id: sessionId,
+        author_name: authorName,
+        type: "text",
+      })
+      .select()
+      .single();
+
+    // Replace the optimistic entry with the real row once we have its id
+    if (data) {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === optimistic.id ? (data as Message) : m)),
+      );
+    }
+
     setSending(false);
   }
 
@@ -97,8 +128,11 @@ export default function ChatRoomPage() {
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto">
       {/* Chat Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-gray-600">
+      <div className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={() => router.back()}
+          className="text-gray-600 dark:text-gray-400"
+        >
           <svg
             className="w-6 h-6"
             fill="none"
@@ -114,19 +148,21 @@ export default function ChatRoomPage() {
           </svg>
         </button>
         <div className="flex-1">
-          <h1 className="font-semibold text-gray-900 truncate">
+          <h1 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
             {chat?.name || "Chat"}
           </h1>
           {chat?.is_group && (
-            <p className="text-xs text-gray-500">Group Chat</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Group Chat
+            </p>
           )}
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-950">
         {messages.length === 0 && (
-          <p className="text-center text-gray-500 text-sm py-8">
+          <p className="text-center text-gray-500 dark:text-gray-400 text-sm py-8">
             Start the conversation!
           </p>
         )}
@@ -139,7 +175,7 @@ export default function ChatRoomPage() {
             >
               <div className={`max-w-[75%] ${isMe ? "order-1" : ""}`}>
                 {!isMe && (
-                  <p className="text-xs text-gray-500 mb-1 ml-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 ml-1">
                     {msg.author_name}
                   </p>
                 )}
@@ -147,7 +183,7 @@ export default function ChatRoomPage() {
                   className={`px-4 py-2 rounded-2xl text-sm ${
                     isMe
                       ? "bg-blue-600 text-white rounded-br-md"
-                      : "bg-white text-gray-900 border border-gray-200 rounded-bl-md"
+                      : "bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-slate-600 rounded-bl-md"
                   }`}
                 >
                   {msg.type === "location" ? (
@@ -159,7 +195,7 @@ export default function ChatRoomPage() {
                   )}
                 </div>
                 <p
-                  className={`text-xs text-gray-400 mt-1 ${isMe ? "text-right mr-1" : "ml-1"}`}
+                  className={`text-xs text-gray-400 dark:text-gray-500 mt-1 ${isMe ? "text-right mr-1" : "ml-1"}`}
                 >
                   {timeAgo(msg.created_at)}
                 </p>
@@ -171,60 +207,69 @@ export default function ChatRoomPage() {
       </div>
 
       {/* Input */}
-      <div className="bg-white border-t border-gray-200 p-3">
-        <form onSubmit={handleSend} className="flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 p-3">
+        {!user ? (
           <button
-            type="button"
-            onClick={shareLocation}
-            className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
-            title="Share location"
+            onClick={() => openAuthModal("login")}
+            className="w-full py-2.5 text-sm text-blue-600 font-medium border border-blue-200 rounded-full hover:bg-blue-50 transition-colors"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
-              />
-            </svg>
+            Log in to send messages
           </button>
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            disabled={!newMessage.trim() || sending}
-            className="p-2 bg-blue-600 text-white rounded-full disabled:opacity-50 hover:bg-blue-700 transition-colors"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+        ) : (
+          <form onSubmit={handleSend} className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={shareLocation}
+              className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
+              title="Share location"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
-              />
-            </svg>
-          </button>
-        </form>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+                />
+              </svg>
+            </button>
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              disabled={!newMessage.trim() || sending}
+              className="p-2 bg-blue-600 text-white rounded-full disabled:opacity-50 hover:bg-blue-700 transition-colors"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+                />
+              </svg>
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

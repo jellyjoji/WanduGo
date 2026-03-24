@@ -92,9 +92,9 @@ export default function ProfilePage() {
       <Header />
       <div className="max-w-lg mx-auto px-4 py-4">
         {/* Profile Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 mb-4">
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-2xl shrink-0">
+            <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-bold text-2xl shrink-0">
               {name?.[0]?.toUpperCase() || "?"}
             </div>
             <div className="flex-1">
@@ -105,14 +105,14 @@ export default function ProfilePage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <textarea
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Write a short bio..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   />
                   <div className="flex gap-2">
                     <button
@@ -123,7 +123,7 @@ export default function ProfilePage() {
                     </button>
                     <button
                       onClick={() => setEditing(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                     >
                       Cancel
                     </button>
@@ -131,14 +131,14 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <>
-                  <h2 className="text-lg font-bold text-gray-900">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {name || "Anonymous"}
                   </h2>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {bio || "No bio set"}
                   </p>
                   {profile?.location_text && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       📍 {profile.location_text}
                     </p>
                   )}
@@ -149,7 +149,7 @@ export default function ProfilePage() {
                   )}
                   <button
                     onClick={() => setEditing(true)}
-                    className="mt-3 px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="mt-3 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                   >
                     Edit Profile
                   </button>
@@ -161,32 +161,34 @@ export default function ProfilePage() {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="bg-white rounded-xl p-3 text-center border border-gray-100">
-            <p className="text-xl font-bold text-gray-900">{posts.length}</p>
-            <p className="text-xs text-gray-500">Posts</p>
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-3 text-center border border-gray-100 dark:border-slate-700">
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              {posts.length}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Posts</p>
           </div>
-          <div className="bg-white rounded-xl p-3 text-center border border-gray-100">
-            <p className="text-xl font-bold text-gray-900">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-3 text-center border border-gray-100 dark:border-slate-700">
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
               {posts.reduce((sum, p) => sum + p.likes, 0)}
             </p>
-            <p className="text-xs text-gray-500">Likes</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Likes</p>
           </div>
-          <div className="bg-white rounded-xl p-3 text-center border border-gray-100">
-            <p className="text-xl font-bold text-gray-900">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-3 text-center border border-gray-100 dark:border-slate-700">
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
               {profile?.rating?.toFixed(1) || "-"}
             </p>
-            <p className="text-xs text-gray-500">Rating</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Rating</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 mb-4">
+        <div className="flex border-b border-gray-200 dark:border-slate-700 mb-4">
           <button
             onClick={() => setTab("posts")}
             className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
               tab === "posts"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500"
+                : "border-transparent text-gray-500 dark:text-gray-400"
             }`}
           >
             My Posts
@@ -196,7 +198,7 @@ export default function ProfilePage() {
             className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
               tab === "comments"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500"
+                : "border-transparent text-gray-500 dark:text-gray-400"
             }`}
           >
             Activity
@@ -206,7 +208,7 @@ export default function ProfilePage() {
         {/* Content */}
         {tab === "posts" ? (
           posts.length === 0 ? (
-            <p className="text-center py-8 text-gray-500 text-sm">
+            <p className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
               No posts yet
             </p>
           ) : (
@@ -217,7 +219,7 @@ export default function ProfilePage() {
             </div>
           )
         ) : (
-          <p className="text-center py-8 text-gray-500 text-sm">
+          <p className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
             Activity history coming soon
           </p>
         )}

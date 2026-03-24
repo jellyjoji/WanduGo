@@ -144,8 +144,11 @@ export default function PostDetailPage() {
   return (
     <div className="max-w-lg mx-auto">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-gray-600">
+      <div className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={() => router.back()}
+          className="text-gray-600 dark:text-gray-400"
+        >
           <svg
             className="w-6 h-6"
             fill="none"
@@ -160,11 +163,13 @@ export default function PostDetailPage() {
             />
           </svg>
         </button>
-        <h1 className="font-semibold text-gray-900 truncate">Post Details</h1>
+        <h1 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+          Post Details
+        </h1>
       </div>
 
       {/* Post Content */}
-      <div className="bg-white p-4">
+      <div className="bg-white dark:bg-slate-900 p-4">
         <div className="flex items-center justify-between mb-3">
           <span
             className={`text-xs font-medium px-2 py-1 rounded-full ${CATEGORY_COLORS[post.category] || "bg-gray-100"}`}
@@ -172,38 +177,44 @@ export default function PostDetailPage() {
             {CATEGORY_LABELS[post.category]}
           </span>
           {distance !== null && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatDistance(distance)}
             </span>
           )}
         </div>
 
-        <h2 className="text-xl font-bold text-gray-900 mb-2">{post.title}</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          {post.title}
+        </h2>
 
         {post.price !== null && post.price > 0 && (
           <p className="text-2xl font-bold text-blue-600 mb-3">${post.price}</p>
         )}
 
-        <p className="text-gray-700 whitespace-pre-wrap mb-4">{post.content}</p>
+        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mb-4">
+          {post.content}
+        </p>
 
         {/* Author & Location Info */}
-        <div className="flex items-center gap-3 py-3 border-t border-gray-100">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-lg">
+        <div className="flex items-center gap-3 py-3 border-t border-gray-100 dark:border-slate-700">
+          <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-semibold text-lg">
             {post.author_name[0]?.toUpperCase()}
           </div>
           <div>
-            <p className="font-medium text-gray-900">{post.author_name}</p>
-            <p className="text-xs text-gray-500">
+            <p className="font-medium text-gray-900 dark:text-gray-100">
+              {post.author_name}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {post.location_text} · {timeAgo(post.created_at)}
             </p>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 py-3 border-t border-gray-100">
+        <div className="flex gap-3 py-3 border-t border-gray-100 dark:border-slate-700">
           <button
             onClick={handleLike}
-            className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 text-sm hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 dark:border-slate-600 text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
           >
             <svg
               className="w-5 h-5 text-red-400"
@@ -232,32 +243,32 @@ export default function PostDetailPage() {
       </div>
 
       {/* Comments */}
-      <div className="bg-white mt-2 p-4">
-        <h3 className="font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-slate-900 mt-2 p-4">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Comments ({comments.length})
         </h3>
 
         {comments.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
             No comments yet. Be the first!
           </p>
         ) : (
           <div className="space-y-4">
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-sm shrink-0">
+                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-sm shrink-0">
                   {comment.author_name[0]?.toUpperCase()}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {comment.author_name}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       {timeAgo(comment.created_at)}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700 mt-0.5">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">
                     {comment.content}
                   </p>
                 </div>
@@ -273,7 +284,7 @@ export default function PostDetailPage() {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Write a comment..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-full text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <button
             type="submit"

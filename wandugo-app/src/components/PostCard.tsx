@@ -22,7 +22,7 @@ export default function PostCard({ post }: PostCardProps) {
 
   return (
     <Link href={`/post/${post.id}`} className="block">
-      <article className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+      <article className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-4 hover:shadow-md transition-shadow">
         <div className="flex items-start justify-between mb-2">
           <span
             className={`text-xs font-medium px-2 py-1 rounded-full ${CATEGORY_COLORS[post.category] || "bg-gray-100 text-gray-800"}`}
@@ -30,16 +30,16 @@ export default function PostCard({ post }: PostCardProps) {
             {CATEGORY_LABELS[post.category] || post.category}
           </span>
           {distance !== null && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatDistance(distance)}
             </span>
           )}
         </div>
 
-        <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 line-clamp-2">
           {post.title}
         </h3>
-        <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
           {post.content}
         </p>
 
@@ -47,9 +47,9 @@ export default function PostCard({ post }: PostCardProps) {
           <p className="text-lg font-bold text-blue-600 mb-2">${post.price}</p>
         )}
 
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+            <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-medium">
               {post.author_name[0]?.toUpperCase()}
             </div>
             <span>{post.author_name}</span>

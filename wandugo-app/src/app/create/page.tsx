@@ -4,13 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "@/contexts/LocationContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { getSessionId, getUserName, setUserName } from "@/lib/session";
 import type { PostCategory } from "@/types/database";
 import { CATEGORY_LABELS } from "@/lib/utils";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function CreatePostPage() {
   const router = useRouter();
   const { lat, lng } = useLocation();
+  const { user, loading: authLoading, openAuthModal } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState<PostCategory>("community");
@@ -22,8 +25,15 @@ export default function CreatePostPage() {
   const [submitting, setSubmitting] = useState(false);
   const autocompleteInputRef = useRef<HTMLInputElement>(null);
 
+  // Redirect guests to auth modal
   useEffect(() => {
-    setAuthorName(getUserName());
+    if (!authLoading && !user) {
+      openAuthModal("login");
+    }
+  }, [authLoading, user, openAuthModal]);
+
+  useEffect(() => {
+    setAuthorName(user?.user_metadata?.name || getUserName());
     if (lat && lng) {
       setPostLat(lat);
       setPostLng(lng);
@@ -99,11 +109,19 @@ export default function CreatePostPage() {
 
   const showPrice = ["marketplace", "buy-sell", "group-buy"].includes(category);
 
+  // Don't render the form until auth state is resolved
+  if (authLoading || !user) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <div className="max-w-lg mx-auto">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-gray-600">
+      <div className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => router.back()}
+          className="text-gray-600 dark:text-gray-400"
+        >
           <svg
             className="w-6 h-6"
             fill="none"
@@ -118,14 +136,16 @@ export default function CreatePostPage() {
             />
           </svg>
         </button>
-        <h1 className="font-semibold text-gray-900">Create Post</h1>
+        <h1 className="font-semibold text-gray-900 dark:text-gray-100">
+          Create Post
+        </h1>
         <div className="w-6" />
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
         {/* Author Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Your Name
           </label>
           <input
@@ -133,13 +153,13 @@ export default function CreatePostPage() {
             value={authorName}
             onChange={(e) => setAuthorName(e.target.value)}
             placeholder="Enter your name"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Category
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -151,7 +171,7 @@ export default function CreatePostPage() {
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   category === key
                     ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-600 border border-gray-200"
+                    : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600"
                 }`}
               >
                 {label}
@@ -162,7 +182,7 @@ export default function CreatePostPage() {
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Title
           </label>
           <input
@@ -171,13 +191,13 @@ export default function CreatePostPage() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter a clear, descriptive title"
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Content */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Content
           </label>
           <textarea
@@ -186,14 +206,14 @@ export default function CreatePostPage() {
             placeholder="Describe your post in detail..."
             required
             rows={6}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
         </div>
 
         {/* Price (conditionally shown) */}
         {showPrice && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Price ($)
             </label>
             <input
@@ -203,14 +223,14 @@ export default function CreatePostPage() {
               placeholder="0.00"
               min="0"
               step="0.01"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         )}
 
         {/* Location */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Location
           </label>
           <input
@@ -219,7 +239,7 @@ export default function CreatePostPage() {
             value={locationText}
             onChange={(e) => setLocationText(e.target.value)}
             placeholder="Search for a location in Canada..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="button"

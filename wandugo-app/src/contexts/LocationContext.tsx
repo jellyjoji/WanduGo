@@ -33,7 +33,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [lng, setLng] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [radius, setRadius] = useState(5);
+  const [radius, setRadius] = useState(50);
 
   const fetchLocation = useCallback(() => {
     setLoading(true);

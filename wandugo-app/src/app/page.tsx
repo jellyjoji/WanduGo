@@ -81,10 +81,10 @@ export default function FeedPage() {
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center p-3 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+              className="flex flex-col items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow"
             >
               <span className="text-2xl mb-1">{item.emoji}</span>
-              <span className="text-xs font-medium text-gray-700">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                 {item.label}
               </span>
             </Link>
@@ -97,7 +97,9 @@ export default function FeedPage() {
         </div>
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Nearby Posts</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Nearby Posts
+          </h2>
           <SortSelector value={sort} onChange={setSort} />
         </div>
 
@@ -106,8 +108,10 @@ export default function FeedPage() {
           <LoadingSpinner />
         ) : filteredAndSorted.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 mb-2">No posts found nearby</p>
-            <p className="text-sm text-gray-400">
+            <p className="text-gray-500 dark:text-gray-400 mb-2">
+              No posts found nearby
+            </p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">
               Try increasing the search radius or be the first to post!
             </p>
             <Link
