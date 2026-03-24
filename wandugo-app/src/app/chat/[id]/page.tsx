@@ -1,0 +1,231 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { getSessionId, getUserName } from "@/lib/session";
+import { timeAgo } from "@/lib/utils";
+import { useLocation } from "@/contexts/LocationContext";
+import type { Message, Chat } from "@/types/database";
+
+export default function ChatRoomPage() {
+  const params = useParams();
+  const chatId = params.id as string;
+  const router = useRouter();
+  const { lat, lng } = useLocation();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [chat, setChat] = useState<Chat | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sessionId = typeof window !== "undefined" ? getSessionId() : "";
+
+  useEffect(() => {
+    async function fetchChat() {
+      const { data: chatData } = await supabase
+        .from("chats")
+        .select("*")
+        .eq("id", chatId)
+        .single();
+
+      if (chatData) setChat(chatData as Chat);
+
+      const { data: messageData } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("chat_id", chatId)
+        .order("created_at", { ascending: true });
+
+      if (messageData) setMessages(messageData as Message[]);
+    }
+    fetchChat();
+
+    // Real-time subscription
+    const channel = supabase
+      .channel(`messages-${chatId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `chat_id=eq.${chatId}`,
+        },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as Message]);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chatId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  async function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newMessage.trim() || sending) return;
+
+    setSending(true);
+    await supabase.from("messages").insert({
+      chat_id: chatId,
+      content: newMessage.trim(),
+      session_id: sessionId,
+      author_name: getUserName(),
+      type: "text",
+    });
+
+    setNewMessage("");
+    setSending(false);
+  }
+
+  async function shareLocation() {
+    if (!lat || !lng) return;
+    await supabase.from("messages").insert({
+      chat_id: chatId,
+      content: JSON.stringify({ lat, lng }),
+      session_id: sessionId,
+      author_name: getUserName(),
+      type: "location",
+    });
+  }
+
+  return (
+    <div className="flex flex-col h-screen max-w-lg mx-auto">
+      {/* Chat Header */}
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+        <button onClick={() => router.back()} className="text-gray-600">
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 19.5L8.25 12l7.5-7.5"
+            />
+          </svg>
+        </button>
+        <div className="flex-1">
+          <h1 className="font-semibold text-gray-900 truncate">
+            {chat?.name || "Chat"}
+          </h1>
+          {chat?.is_group && (
+            <p className="text-xs text-gray-500">Group Chat</p>
+          )}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+        {messages.length === 0 && (
+          <p className="text-center text-gray-500 text-sm py-8">
+            Start the conversation!
+          </p>
+        )}
+        {messages.map((msg) => {
+          const isMe = msg.session_id === sessionId;
+          return (
+            <div
+              key={msg.id}
+              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+            >
+              <div className={`max-w-[75%] ${isMe ? "order-1" : ""}`}>
+                {!isMe && (
+                  <p className="text-xs text-gray-500 mb-1 ml-1">
+                    {msg.author_name}
+                  </p>
+                )}
+                <div
+                  className={`px-4 py-2 rounded-2xl text-sm ${
+                    isMe
+                      ? "bg-blue-600 text-white rounded-br-md"
+                      : "bg-white text-gray-900 border border-gray-200 rounded-bl-md"
+                  }`}
+                >
+                  {msg.type === "location" ? (
+                    <div className="flex items-center gap-1">
+                      📍 <span className="underline">Shared location</span>
+                    </div>
+                  ) : (
+                    msg.content
+                  )}
+                </div>
+                <p
+                  className={`text-xs text-gray-400 mt-1 ${isMe ? "text-right mr-1" : "ml-1"}`}
+                >
+                  {timeAgo(msg.created_at)}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="bg-white border-t border-gray-200 p-3">
+        <form onSubmit={handleSend} className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={shareLocation}
+            className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
+            title="Share location"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+              />
+            </svg>
+          </button>
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="submit"
+            disabled={!newMessage.trim() || sending}
+            className="p-2 bg-blue-600 text-white rounded-full disabled:opacity-50 hover:bg-blue-700 transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+              />
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
