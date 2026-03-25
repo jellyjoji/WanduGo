@@ -21,15 +21,17 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const sessionId = getSessionId();
+
     async function fetchNotifications() {
-      const sessionId = getSessionId();
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("notifications")
         .select("*")
         .eq("session_id", sessionId)
         .order("created_at", { ascending: false })
         .limit(50);
 
+      if (error) console.error("Notifications fetch error:", error);
       if (data) setNotifications(data as Notification[]);
       setLoading(false);
 
@@ -43,6 +45,33 @@ export default function NotificationsPage() {
       }
     }
     fetchNotifications();
+
+    // Real-time: prepend new notifications as they arrive
+    const channel = supabase
+      .channel("notifications-page")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `session_id=eq.${sessionId}`,
+        },
+        async (payload) => {
+          const newNotif = payload.new as Notification;
+          // Mark it read immediately since the page is open
+          await supabase
+            .from("notifications")
+            .update({ read: true })
+            .eq("id", newNotif.id);
+          setNotifications((prev) => [{ ...newNotif, read: true }, ...prev]);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (

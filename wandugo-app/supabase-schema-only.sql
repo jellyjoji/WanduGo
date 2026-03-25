@@ -102,14 +102,15 @@ DO $$ BEGIN
     CREATE POLICY "Anyone can read posts"         ON posts        FOR SELECT USING (true);
     CREATE POLICY "Anyone can create posts"       ON posts        FOR INSERT WITH CHECK (true);
     CREATE POLICY "Authors can update own posts"  ON posts        FOR UPDATE USING (true);
+    CREATE POLICY "Authors can delete own posts"  ON posts        FOR DELETE USING (true);
     CREATE POLICY "Anyone can read comments"      ON comments     FOR SELECT USING (true);
     CREATE POLICY "Anyone can create comments"    ON comments     FOR INSERT WITH CHECK (true);
-    CREATE POLICY "Anyone can read chats"         ON chats        FOR SELECT USING (true);
-    CREATE POLICY "Anyone can create chats"       ON chats        FOR INSERT WITH CHECK (true);
-    CREATE POLICY "Anyone can read chat members"  ON chat_members FOR SELECT USING (true);
-    CREATE POLICY "Anyone can join chats"         ON chat_members FOR INSERT WITH CHECK (true);
-    CREATE POLICY "Anyone can read messages"      ON messages     FOR SELECT USING (true);
-    CREATE POLICY "Anyone can send messages"      ON messages     FOR INSERT WITH CHECK (true);
+    CREATE POLICY "Anyone can read chats"                  ON chats        FOR SELECT USING (true);
+    CREATE POLICY "Anyone can create chats"               ON chats        FOR INSERT WITH CHECK (true);
+    CREATE POLICY "Anyone can read chat members"          ON chat_members FOR SELECT USING (true);
+    CREATE POLICY "Anyone can join chats"                 ON chat_members FOR INSERT WITH CHECK (true);
+    CREATE POLICY "Anyone can read messages"              ON messages     FOR SELECT USING (true);
+    CREATE POLICY "Anyone can send messages"              ON messages     FOR INSERT WITH CHECK (true);
     CREATE POLICY "Anyone can read profiles"      ON profiles     FOR SELECT USING (true);
     CREATE POLICY "Anyone can create profiles"    ON profiles     FOR INSERT WITH CHECK (true);
     CREATE POLICY "Anyone can update profiles"    ON profiles     FOR UPDATE USING (true);
@@ -129,5 +130,47 @@ DO $$ BEGIN
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname='supabase_realtime' AND tablename='notifications') THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+  END IF;
+END $$;
+
+-- ==========================================
+-- STORAGE: post-images bucket
+-- ==========================================
+-- Creates a public bucket for post images and sets permissive policies.
+-- Run this block once in the Supabase SQL Editor.
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'post-images',
+  'post-images',
+  true,
+  5242880,   -- 5 MB per file
+  ARRAY['image/jpeg','image/png','image/webp','image/gif','image/heic']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public            = true,
+  file_size_limit   = 5242880,
+  allowed_mime_types = ARRAY['image/jpeg','image/png','image/webp','image/gif','image/heic'];
+
+-- Allow anyone to upload (INSERT) into the bucket
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'post-images: public upload'
+  ) THEN
+    CREATE POLICY "post-images: public upload"
+      ON storage.objects FOR INSERT
+      WITH CHECK (bucket_id = 'post-images');
+  END IF;
+END $$;
+
+-- Allow anyone to read (SELECT) from the bucket
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'post-images: public read'
+  ) THEN
+    CREATE POLICY "post-images: public read"
+      ON storage.objects FOR SELECT
+      USING (bucket_id = 'post-images');
   END IF;
 END $$;

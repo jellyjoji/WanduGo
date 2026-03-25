@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function Header() {
   const { radius, setRadius } = useLocation();
-  const { user, openAuthModal, signOut } = useAuth();
+  const { user, openAuthModal, signOut, displayName } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { unreadCount } = useNotifications();
 
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
@@ -76,6 +78,18 @@ export default function Header() {
                       d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
                     />
                   </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 min-w-4 h-4 px-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  href="/profile"
+                  className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold hover:bg-blue-700 transition-colors"
+                  title={displayName || "Profile"}
+                >
+                  {displayName?.[0]?.toUpperCase() || "?"}
                 </Link>
                 <button
                   onClick={signOut}

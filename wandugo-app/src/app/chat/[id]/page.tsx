@@ -14,9 +14,10 @@ export default function ChatRoomPage() {
   const chatId = params.id as string;
   const router = useRouter();
   const { lat, lng } = useLocation();
-  const { user, openAuthModal } = useAuth();
+  const { user, loading: authLoading, openAuthModal } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [chat, setChat] = useState<Chat | null>(null);
+  const [otherUserName, setOtherUserName] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -39,6 +40,18 @@ export default function ChatRoomPage() {
         .order("created_at", { ascending: true });
 
       if (messageData) setMessages(messageData as Message[]);
+
+      // Find the other participant's name for 1-on-1 chats
+      const myId = typeof window !== "undefined" ? getSessionId() : "";
+      const { data: members } = await supabase
+        .from("chat_members")
+        .select("session_id, author_name")
+        .eq("chat_id", chatId);
+
+      if (members) {
+        const other = members.find((m) => m.session_id !== myId);
+        if (other) setOtherUserName(other.author_name);
+      }
     }
     fetchChat();
 
@@ -125,6 +138,46 @@ export default function ChatRoomPage() {
     });
   }
 
+  if (authLoading) {
+    return (
+      <div className="flex flex-col h-screen max-w-lg mx-auto items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col h-screen max-w-lg mx-auto items-center justify-center px-6 text-center gap-5">
+        <div className="w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-4xl">
+          💬
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+            Sign in to view this chat
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            You need to be signed in to read and send messages.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => openAuthModal("signup")}
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            Create Account
+          </button>
+          <button
+            onClick={() => openAuthModal("login")}
+            className="px-6 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto">
       {/* Chat Header */}
@@ -149,7 +202,9 @@ export default function ChatRoomPage() {
         </button>
         <div className="flex-1">
           <h1 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
-            {chat?.name || "Chat"}
+            {chat?.is_group
+              ? chat?.name || "Group Chat"
+              : otherUserName || chat?.name || "Chat"}
           </h1>
           {chat?.is_group && (
             <p className="text-xs text-gray-500 dark:text-gray-400">

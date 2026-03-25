@@ -43,6 +43,15 @@ export default function PostCard({ post }: PostCardProps) {
           {post.content}
         </p>
 
+        {post.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={post.image_url}
+            alt={post.title}
+            className="w-full h-40 object-cover rounded-lg mb-3"
+          />
+        )}
+
         {post.price !== null && post.price > 0 && (
           <p className="text-lg font-bold text-blue-600 mb-2">${post.price}</p>
         )}

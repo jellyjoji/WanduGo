@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { getSessionId, getUserName, setUserName } from "@/lib/session";
+import { getSessionId, getUserName } from "@/lib/session";
 import type { PostCategory } from "@/types/database";
 import { CATEGORY_LABELS } from "@/lib/utils";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -21,9 +21,11 @@ export default function CreatePostPage() {
   const [locationText, setLocationText] = useState("");
   const [postLat, setPostLat] = useState<number | null>(null);
   const [postLng, setPostLng] = useState<number | null>(null);
-  const [authorName, setAuthorName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const autocompleteInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Redirect guests to auth modal
   useEffect(() => {
@@ -33,7 +35,6 @@ export default function CreatePostPage() {
   }, [authLoading, user, openAuthModal]);
 
   useEffect(() => {
-    setAuthorName(user?.user_metadata?.name || getUserName());
     if (lat && lng) {
       setPostLat(lat);
       setPostLng(lng);
@@ -70,15 +71,35 @@ export default function CreatePostPage() {
     );
   }, []);
 
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !content.trim() || submitting) return;
 
     setSubmitting(true);
     const sessionId = getSessionId();
+    const resolvedName =
+      user?.user_metadata?.name || getUserName() || "Anonymous";
 
-    if (authorName && authorName !== "Anonymous") {
-      setUserName(authorName);
+    // Upload image via server-side API route (uses service role key)
+    let image_url: string | null = null;
+    if (imageFile) {
+      const form = new FormData();
+      form.append("file", imageFile);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok) {
+        alert(`Image upload failed: ${json.error}`);
+        setSubmitting(false);
+        return;
+      }
+      image_url = json.url;
     }
 
     const { data, error } = await supabase
@@ -90,10 +111,10 @@ export default function CreatePostPage() {
         lat: postLat || lat || 43.6532,
         lng: postLng || lng || -79.3832,
         location_text: locationText || "Unknown location",
-        author_name: authorName || "Anonymous",
+        author_name: resolvedName,
         session_id: sessionId,
         price: price ? parseFloat(price) : null,
-        image_url: null,
+        image_url,
       })
       .select()
       .single();
@@ -143,20 +164,6 @@ export default function CreatePostPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
-        {/* Author Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Your Name
-          </label>
-          <input
-            type="text"
-            value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
-            placeholder="Enter your name"
-            className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
         {/* Category */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -254,6 +261,61 @@ export default function CreatePostPage() {
           >
             📍 Use my current location
           </button>
+        </div>
+
+        {/* Image Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Image <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+          {imagePreview ? (
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-48 object-cover rounded-xl border border-gray-200 dark:border-slate-600"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setImageFile(null);
+                  setImagePreview(null);
+                }}
+                className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-black/80"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full h-32 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
+            >
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 19.5h18M12 3v9m0 0l-3-3m3 3l3-3"
+                />
+              </svg>
+              <span className="text-sm">Tap to add a photo</span>
+            </button>
+          )}
         </div>
 
         {/* Submit */}

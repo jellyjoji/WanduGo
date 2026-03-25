@@ -2,13 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { getSessionId, getUserName, setUserName } from "@/lib/session";
+import { useAuth } from "@/contexts/AuthContext";
+import { getSessionId, setUserName } from "@/lib/session";
 import type { Post, Profile } from "@/types/database";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function ProfilePage() {
+  const {
+    user,
+    loading: authLoading,
+    openAuthModal,
+    updateUserMetaName,
+  } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,14 +25,15 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<"posts" | "comments">("posts");
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     async function fetchProfile() {
       const sessionId = getSessionId();
-      if (!sessionId) {
-        setLoading(false);
-        return;
-      }
 
-      // Try to get existing profile
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
@@ -37,10 +45,10 @@ export default function ProfilePage() {
         setName(profileData.name);
         setBio(profileData.bio);
       } else {
-        setName(getUserName());
+        // Pre-fill name from auth account metadata
+        setName(user!.user_metadata?.name || user!.email?.split("@")[0] || "");
       }
 
-      // Fetch user's posts
       const { data: postData } = await supabase
         .from("posts")
         .select("*")
@@ -51,11 +59,14 @@ export default function ProfilePage() {
       setLoading(false);
     }
     fetchProfile();
-  }, []);
+  }, [user, authLoading]);
 
   async function handleSaveProfile() {
+    if (!user) return;
     const sessionId = getSessionId();
+    // Keep localStorage and Supabase auth metadata in sync
     setUserName(name);
+    await updateUserMetaName(name);
 
     const profileData = {
       session_id: sessionId,
@@ -68,13 +79,43 @@ export default function ProfilePage() {
     };
 
     if (profile) {
-      await supabase
+      const { error } = await supabase
         .from("profiles")
         .update({ name, bio })
         .eq("session_id", sessionId);
+      if (error) {
+        console.error("Profile update error:", error);
+        alert("Failed to save profile. Please try again.");
+        return;
+      }
     } else {
-      await supabase.from("profiles").insert(profileData);
+      const { error } = await supabase.from("profiles").insert(profileData);
+      if (error) {
+        console.error("Profile insert error:", error);
+        alert("Failed to save profile. Please try again.");
+        return;
+      }
     }
+
+    // Propagate name change to all past content by this user
+    await Promise.all([
+      supabase
+        .from("posts")
+        .update({ author_name: name })
+        .eq("session_id", sessionId),
+      supabase
+        .from("comments")
+        .update({ author_name: name })
+        .eq("session_id", sessionId),
+      supabase
+        .from("chat_members")
+        .update({ author_name: name })
+        .eq("session_id", sessionId),
+      supabase
+        .from("messages")
+        .update({ author_name: name })
+        .eq("session_id", sessionId),
+    ]);
 
     setProfile({
       ...profile,
@@ -85,7 +126,44 @@ export default function ProfilePage() {
     setEditing(false);
   }
 
-  if (loading) return <LoadingSpinner />;
+  // Wait for auth to resolve
+  if (authLoading || (user && loading)) return <LoadingSpinner />;
+
+  // Not authenticated — prompt sign in
+  if (!user) {
+    return (
+      <>
+        <Header />
+        <div className="max-w-lg mx-auto px-4 py-20 flex flex-col items-center text-center gap-5">
+          <div className="w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-4xl">
+            👤
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+              Sign in to view your profile
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Create an account or sign in to manage your profile and posts.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => openAuthModal("signup")}
+              className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              Create Account
+            </button>
+            <button
+              onClick={() => openAuthModal("login")}
+              className="px-6 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

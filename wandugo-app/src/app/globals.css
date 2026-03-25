@@ -44,3 +44,12 @@ main {
   background: #cbd5e1;
   border-radius: 2px;
 }
+
+/* Hide scrollbar for category filter and similar horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE / Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome / Safari / Opera */
+}

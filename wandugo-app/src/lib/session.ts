@@ -13,6 +13,19 @@ export function getSessionId(): string {
   return sessionId;
 }
 
+/** Overwrite the stored session ID (used when a user logs in). */
+export function setSessionId(id: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(SESSION_KEY, id);
+}
+
+/** Reset to a fresh anonymous UUID (used on sign-out). */
+export function resetSessionId(): string {
+  const id = uuidv4();
+  if (typeof window !== "undefined") localStorage.setItem(SESSION_KEY, id);
+  return id;
+}
+
 export function getUserName(): string {
   if (typeof window === "undefined") return "Anonymous";
   return localStorage.getItem(NAME_KEY) || "Anonymous";
