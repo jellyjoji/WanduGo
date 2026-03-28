@@ -84,7 +84,8 @@ export default function ChatListPage() {
       return;
     }
     fetchChats();
-  }, [user, authLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, authLoading]);
 
   // Real-time: refresh chat list when added to a new chat room
   useEffect(() => {

@@ -42,11 +42,18 @@ export default function ProfilePage() {
 
       if (profileData) {
         setProfile(profileData as Profile);
-        setName(profileData.name);
-        setBio(profileData.bio);
+        // Don't overwrite inputs while the user is actively editing
+        if (!editing) {
+          setName(profileData.name);
+          setBio(profileData.bio);
+        }
       } else {
         // Pre-fill name from auth account metadata
-        setName(user!.user_metadata?.name || user!.email?.split("@")[0] || "");
+        if (!editing) {
+          setName(
+            user!.user_metadata?.name || user!.email?.split("@")[0] || "",
+          );
+        }
       }
 
       const { data: postData } = await supabase
@@ -59,7 +66,8 @@ export default function ProfilePage() {
       setLoading(false);
     }
     fetchProfile();
-  }, [user, authLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, authLoading]);
 
   async function handleSaveProfile() {
     if (!user) return;
