@@ -81,7 +81,9 @@ export default function InstallPrompt() {
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {iosMode
               ? 'Tap the share icon below, then "Add to Home Screen"'
-              : "Add to your home screen for the best experience"}
+              : deferredPrompt
+              ? "Add to your home screen for the best experience"
+              : 'Tap ⋮ menu → "Add to Home Screen" or "Install app"'}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -104,7 +106,7 @@ export default function InstallPrompt() {
               />
             </svg>
           </button>
-          {!iosMode && (
+          {!iosMode && deferredPrompt && (
             <button
               onClick={handleInstall}
               className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"

@@ -8,6 +8,7 @@ import type { Post, Profile } from "@/types/database";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import QRInstallModal from "@/components/QRInstallModal";
 
 export default function ProfilePage() {
   const {
@@ -23,6 +24,7 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [tab, setTab] = useState<"posts" | "comments">("posts");
+  const [showQR, setShowQR] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -175,6 +177,7 @@ export default function ProfilePage() {
 
   return (
     <>
+      {showQR && <QRInstallModal onClose={() => setShowQR(false)} />}
       <Header />
       <div className="max-w-lg mx-auto px-4 py-4">
         {/* Profile Card */}
@@ -233,12 +236,24 @@ export default function ProfilePage() {
                       ⭐ {profile.rating.toFixed(1)}
                     </p>
                   )}
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="mt-3 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    Edit Profile
-                  </button>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={() => setShowQR(true)}
+                      title="Install app QR code"
+                      className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM17 14h1v1h-1zM14 14h1v1h-1zM20 17h1v1h-1zM17 17h1v3h-1zM14 17h1v1h-1zM14 20h4v1h-4z" />
+                      </svg>
+                      Install
+                    </button>
+                  </div>
                 </>
               )}
             </div>
