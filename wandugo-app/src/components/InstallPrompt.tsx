@@ -71,9 +71,7 @@ export default function InstallPrompt() {
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 max-w-lg mx-auto">
       <div className="bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-xl p-4 flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 text-white font-bold text-xl select-none">
-          W
-        </div>
+        <img src="/icon-192.png" alt="WanduGo" className="h-10 w-10 rounded-xl shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
             Install WanduGo

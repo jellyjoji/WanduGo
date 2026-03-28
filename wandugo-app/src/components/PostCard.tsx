@@ -10,6 +10,7 @@ import {
   CATEGORY_COLORS,
 } from "@/lib/utils";
 import { useLocation } from "@/contexts/LocationContext";
+import { setCachedPost } from "@/lib/postCache";
 
 interface PostCardProps {
   post: Post;
@@ -21,7 +22,7 @@ export default function PostCard({ post }: PostCardProps) {
     lat && lng ? haversineDistance(lat, lng, post.lat, post.lng) : null;
 
   return (
-    <Link href={`/post/${post.id}`} className="block">
+    <Link href={`/post/${post.id}`} className="block" onClick={() => setCachedPost(post)}>
       <article className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-4 hover:shadow-md transition-shadow">
         <div className="flex items-start justify-between mb-2">
           <span

@@ -21,6 +21,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/google.maps": "^3.58.1",
     "@types/node": "^20",

@@ -104,7 +104,7 @@ export default function FeedPage() {
         </div>
 
         {/* Posts */}
-        {loading || locationLoading ? (
+        {loading ? (
           <LoadingSpinner />
         ) : filteredAndSorted.length === 0 ? (
           <div className="text-center py-12">

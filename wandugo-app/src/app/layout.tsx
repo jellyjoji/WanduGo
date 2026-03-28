@@ -31,13 +31,17 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   icons: {
-    icon: "/icon.svg",
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
     apple: "/apple-icon.svg",
   },
 };
 
 export const viewport = {
-  themeColor: "#2563eb",
+  themeColor: "#30B66E",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -55,7 +59,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-gray-50 dark:bg-slate-950">
+      <body className="min-h-full flex flex-col bg-[#F6F8F7] dark:bg-[#1A211D]">
         <ThemeProvider>
           <AuthProvider>
             <LocationProvider>

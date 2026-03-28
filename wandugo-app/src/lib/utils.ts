@@ -54,12 +54,12 @@ export const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  jobs: "bg-blue-100 text-blue-800",
-  community: "bg-green-100 text-green-800",
-  marketplace: "bg-orange-100 text-orange-800",
-  housing: "bg-purple-100 text-purple-800",
-  events: "bg-pink-100 text-pink-800",
-  tips: "bg-yellow-100 text-yellow-800",
-  "buy-sell": "bg-red-100 text-red-800",
-  "group-buy": "bg-teal-100 text-teal-800",
+  jobs: "bg-[#C9ECC1] text-[#1B653D]",
+  community: "bg-[#EBF8E8] text-[#258D55]",
+  marketplace: "bg-[#FEF7F1] text-[#C16510]",
+  housing: "bg-[#FFF5E0] text-[#E09400]",
+  events: "bg-[#C4DEFC] text-[#0A72EC]",
+  tips: "bg-[#FFE3AD] text-[#AD7200]",
+  "buy-sell": "bg-[#F6E0E0] text-[#D26A6A]",
+  "group-buy": "bg-[#F8CDA5] text-[#C16510]",
 };

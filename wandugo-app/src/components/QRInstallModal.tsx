@@ -17,6 +17,42 @@ export default function QRInstallModal({ onClose }: QRInstallModalProps) {
       width: 220,
       margin: 2,
       color: { dark: "#1e3a5f", light: "#ffffff" },
+      // Use higher error correction so logo overlay doesn't break scannability
+      errorCorrectionLevel: "H",
+    }).then(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const logoSize = 46;
+      const padding = 6;
+      const x = (canvas.width - logoSize) / 2;
+      const y = (canvas.height - logoSize) / 2;
+
+      // White rounded square behind the logo
+      ctx.fillStyle = "#ffffff";
+      const r = 6;
+      const bx = x - padding;
+      const by = y - padding;
+      const bw = logoSize + padding * 2;
+      const bh = logoSize + padding * 2;
+      ctx.beginPath();
+      ctx.moveTo(bx + r, by);
+      ctx.lineTo(bx + bw - r, by);
+      ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
+      ctx.lineTo(bx + bw, by + bh - r);
+      ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - r, by + bh);
+      ctx.lineTo(bx + r, by + bh);
+      ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
+      ctx.lineTo(bx, by + r);
+      ctx.quadraticCurveTo(bx, by, bx + r, by);
+      ctx.closePath();
+      ctx.fill();
+
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, x, y, logoSize, logoSize);
+      img.src = "/icon.svg";
     });
   }, []);
 
@@ -40,9 +76,7 @@ export default function QRInstallModal({ onClose }: QRInstallModalProps) {
     >
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 w-full max-w-sm flex flex-col items-center gap-4">
         <div className="flex items-center justify-between w-full">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Install WanduGo
-          </h2>
+          <img src="/logo.svg" alt="WanduGo" className="h-8 w-auto" />
           <button
             onClick={onClose}
             className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg"

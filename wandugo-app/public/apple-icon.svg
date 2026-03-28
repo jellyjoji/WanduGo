@@ -1,4 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
-  <rect width="180" height="180" rx="40" fill="#2563eb"/>
-  <text x="90" y="132" font-family="Arial, sans-serif" font-size="110" font-weight="bold" text-anchor="middle" fill="white">W</text>
+  <rect width="180" height="180" rx="28" fill="#f9fafb"/>
+  <g transform="translate(2,46) scale(0.55)">
+    <path d="M80 40C57.8889 40 40 57.8889 40 80V120H80C102.111 120 120 102.111 120 80C120 57.8889 102.111 40 80 40Z" fill="#FFC04A"/>
+    <circle cx="96.6667" cy="62.2222" r="9.5" fill="#FFE3AC"/>
+    <path d="M160 40C137.889 40 120 57.8889 120 80V120H160C182.111 120 200 102.111 200 80C200 57.8889 182.111 40 160 40Z" fill="#63C74C"/>
+    <circle cx="176.667" cy="62.2222" r="9.5" fill="#C9ECC1"/>
+    <path d="M240 120C262.111 120 280 102.111 280 80L280 40L240 40C217.889 40 200 57.8889 200 80C200 102.111 217.889 120 240 120Z" fill="#30B66F"/>
+  </g>
 </svg>

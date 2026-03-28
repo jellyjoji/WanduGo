@@ -4,24 +4,183 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  --font-size: 16px;
   --background: #ffffff;
-  --foreground: #171717;
-  --primary: #2563eb;
-  --primary-light: #dbeafe;
+  --foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #30b66e;
+  --primary-foreground: #ffffff;
+  --secondary: #ebf8e8;
+  --secondary-foreground: #1b653d;
+  --muted: #f6f8f7;
+  --muted-foreground: #59625c;
+  --accent: #c9ecc1;
+  --accent-foreground: #1b653d;
+  --destructive: #fa4343;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: transparent;
+  --input-background: #f6f8f7;
+  --switch-background: #aeb4b0;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #30b66e;
+  --radius: 0.75rem;
+
+  /* WanduGo Brand Colors */
+  /* Green */
+  --green-200: #9ae4bc;
+  --green-300: #72daa2;
+  --green-400: #49cf87;
+  --green-500: #30b66e;
+  --green-600: #258d55;
+  --green-700: #1b653d;
+  --green-800: #103d25;
+
+  /* Light Green */
+  --light-green-200: #ebf8e8;
+  --light-green-300: #c9ecc1;
+  --light-green-400: #a8e09a;
+  --light-green-500: #64c74c;
+  --light-green-600: #4cab35;
+  --light-green-700: #3b8429;
+  --light-green-800: #2a5d1d;
+
+  /* Yellow */
+  --yellow-200: #fff5e0;
+  --yellow-300: #ffe3ad;
+  --yellow-400: #ffd27a;
+  --yellow-500: #ffc14a;
+  --yellow-600: #ffaf14;
+  --yellow-700: #e09400;
+  --yellow-800: #ad7200;
+
+  /* Orange */
+  --orange-200: #fef7f1;
+  --orange-300: #f8cda5;
+  --orange-400: #f4b376;
+  --orange-500: #f09847;
+  --orange-600: #ec7d17;
+  --orange-700: #c16510;
+  --orange-800: #924c0c;
+
+  /* Error (Red) */
+  --red-100: #f6e0e0;
+  --red-200: #eab8b8;
+  --red-300: #de9191;
+  --red-400: #d26a6a;
+  --red-500: #fa4343;
+
+  /* Info (Blue) */
+  --blue-100: #c4defc;
+  --blue-200: #93c3fa;
+  --blue-300: #63a7f8;
+  --blue-400: #328cf6;
+  --blue-500: #0a72ec;
+
+  /* Greenish Gray */
+  --gray-100: #fbfbfb;
+  --gray-200: #f6f8f7;
+  --gray-300: #dce0de;
+  --gray-400: #aeb4b0;
+  --gray-500: #8d948f;
+  --gray-600: #59625c;
+  --gray-700: #323e38;
+  --gray-800: #1a211d;
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
+  --background: #1a211d;
+  --foreground: #fbfbfb;
+  --card: #323e38;
+  --card-foreground: #fbfbfb;
+  --popover: #323e38;
+  --popover-foreground: #fbfbfb;
+  --primary: #49cf87;
+  --primary-foreground: #1a211d;
+  --secondary: #59625c;
+  --secondary-foreground: #fbfbfb;
+  --muted: #59625c;
+  --muted-foreground: #aeb4b0;
+  --accent: #59625c;
+  --accent-foreground: #fbfbfb;
+  --destructive: #fa4343;
+  --destructive-foreground: #fbfbfb;
+  --border: #59625c;
+  --input: #59625c;
+  --ring: #49cf87;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
   --color-primary: var(--primary);
-  --color-primary-light: var(--primary-light);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* WanduGo greenish-gray overrides Tailwind's gray */
+  --color-gray-50: var(--gray-100);
+  --color-gray-100: var(--gray-200);
+  --color-gray-200: var(--gray-300);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-800);
+
+  /* WanduGo dark greenish-gray overrides Tailwind's slate */
+  --color-slate-600: var(--gray-500);
+  --color-slate-700: var(--gray-600);
+  --color-slate-800: var(--gray-700);
+  --color-slate-900: var(--gray-700);
+  --color-slate-950: var(--gray-800);
+
+  /* WanduGo brand green overrides Tailwind's blue (all brand-primary uses) */
+  --color-blue-50: var(--light-green-200);
+  --color-blue-100: var(--light-green-300);
+  --color-blue-200: var(--light-green-400);
+  --color-blue-300: var(--green-300);
+  --color-blue-400: var(--green-400);
+  --color-blue-500: var(--green-500);
+  --color-blue-600: var(--green-500);
+  --color-blue-700: var(--green-600);
+  --color-blue-800: var(--green-700);
+  --color-blue-900: var(--green-700);
+  --color-blue-950: var(--green-800);
+
+  /* WanduGo brand green scale */
+  --color-green-50: var(--light-green-200);
+  --color-green-100: var(--light-green-300);
+  --color-green-200: var(--green-200);
+  --color-green-300: var(--green-300);
+  --color-green-400: var(--green-400);
+  --color-green-500: var(--green-500);
+  --color-green-600: var(--green-600);
+  --color-green-700: var(--green-700);
+  --color-green-800: var(--green-800);
 }
 
 body {
@@ -41,7 +200,7 @@ main {
   width: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--green-400);
   border-radius: 2px;
 }
 
