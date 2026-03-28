@@ -1,0 +1,37 @@
+{
+  "name": "WanduGo",
+  "short_name": "WanduGo",
+  "description": "Location-based community platform for Canadians. Find jobs, housing, events, and connect with people nearby.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9fafb",
+  "theme_color": "#2563eb",
+  "categories": ["social", "lifestyle", "local"],
+  "lang": "en-CA",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Create Post",
+      "short_name": "Create",
+      "description": "Create a new community post",
+      "url": "/create",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "My Chats",
+      "short_name": "Chats",
+      "description": "View your conversations",
+      "url": "/chat",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    }
+  ]
+}

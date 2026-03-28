@@ -21,6 +21,25 @@ export const metadata: Metadata = {
   title: "WanduGo - Local Community Platform",
   description:
     "Location-based community platform for Canadians. Find jobs, housing, events, and connect with people nearby.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "WanduGo",
+  },
+  formatDetection: { telephone: false },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon.svg",
+  },
+};
+
+export const viewport = {
+  themeColor: "#2563eb",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
