@@ -6,6 +6,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import BottomNav from "@/components/BottomNav";
 import AuthModal from "@/components/AuthModal";
+import InstallPrompt from "@/components/InstallPrompt";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,6 +62,8 @@ export default function RootLayout({
               <main className="flex-1">{children}</main>
               <BottomNav />
               <AuthModal />
+              <InstallPrompt />
+              <ServiceWorkerRegister />
             </LocationProvider>
           </AuthProvider>
         </ThemeProvider>

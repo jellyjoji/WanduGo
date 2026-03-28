@@ -43,7 +43,7 @@ export function timeAgo(dateStr: string): string {
 }
 
 export const CATEGORY_LABELS: Record<string, string> = {
-  jobs: "구인/구직 Jobs",
+  jobs: "Jobs",
   community: "Community",
   marketplace: "Marketplace",
   housing: "Housing",
