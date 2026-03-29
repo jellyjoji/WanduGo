@@ -8,7 +8,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 
 export default function Header() {
   const { radius, setRadius } = useLocation();
-  const { user, openAuthModal, signOut, displayName } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { unreadCount } = useNotifications();
 
@@ -84,19 +84,6 @@ export default function Header() {
                     </span>
                   )}
                 </Link>
-                <Link
-                  href="/profile"
-                  className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold hover:bg-blue-700 transition-colors"
-                  title={displayName || "Profile"}
-                >
-                  {displayName?.[0]?.toUpperCase() || "?"}
-                </Link>
-                <button
-                  onClick={signOut}
-                  className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-2 py-1 border border-gray-200 dark:border-slate-600 rounded-lg"
-                >
-                  Logout
-                </button>
               </>
             ) : (
               <button
