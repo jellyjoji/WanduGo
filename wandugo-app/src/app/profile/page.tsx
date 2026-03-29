@@ -16,7 +16,14 @@ import Link from "next/link";
 
 type ActivityItem =
   | { type: "post"; post: Post; created_at: string }
-  | { type: "comment"; comment_id: string; post_id: string; post_title: string; content: string; created_at: string };
+  | {
+      type: "comment";
+      comment_id: string;
+      post_id: string;
+      post_title: string;
+      content: string;
+      created_at: string;
+    };
 
 export default function ProfilePage() {
   const {
@@ -36,7 +43,9 @@ export default function ProfilePage() {
   const [showQR, setShowQR] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Post[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
-  const [profileMap, setProfileMap] = useState<Record<string, ProfileSnippet | null>>({});
+  const [profileMap, setProfileMap] = useState<
+    Record<string, ProfileSnippet | null>
+  >({});
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +93,9 @@ export default function ProfilePage() {
 
       // Fetch posts that the user has liked (stored in localStorage)
       const likedIds = Object.keys(localStorage)
-        .filter((k) => k.startsWith("liked_") && localStorage.getItem(k) === "true")
+        .filter(
+          (k) => k.startsWith("liked_") && localStorage.getItem(k) === "true",
+        )
         .map((k) => k.replace("liked_", ""));
 
       if (likedIds.length > 0) {
@@ -97,9 +108,7 @@ export default function ProfilePage() {
       }
 
       // Batch-fetch profiles for all posts so author info is always current
-      const allSessionIds = [
-        ...(postData ?? []).map((p) => p.session_id),
-      ];
+      const allSessionIds = [...(postData ?? []).map((p) => p.session_id)];
       getProfiles([...new Set(allSessionIds)]).then(setProfileMap);
 
       // Build activity feed: comments + posts merged and sorted by time
@@ -110,14 +119,18 @@ export default function ProfilePage() {
         .order("created_at", { ascending: false })
         .limit(50);
 
-      const commentItems: ActivityItem[] = (commentData ?? []).map((c: Record<string, unknown>) => ({
-        type: "comment",
-        comment_id: c.id as string,
-        post_id: c.post_id as string,
-        post_title: ((c.posts as Record<string, unknown>)?.title as string) ?? "(deleted post)",
-        content: c.content as string,
-        created_at: c.created_at as string,
-      }));
+      const commentItems: ActivityItem[] = (commentData ?? []).map(
+        (c: Record<string, unknown>) => ({
+          type: "comment",
+          comment_id: c.id as string,
+          post_id: c.post_id as string,
+          post_title:
+            ((c.posts as Record<string, unknown>)?.title as string) ??
+            "(deleted post)",
+          content: c.content as string,
+          created_at: c.created_at as string,
+        }),
+      );
 
       const postItems: ActivityItem[] = (postData ?? []).map((p) => ({
         type: "post",
@@ -126,7 +139,8 @@ export default function ProfilePage() {
       }));
 
       const merged = [...commentItems, ...postItems].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       );
       setActivity(merged);
 
@@ -152,7 +166,10 @@ export default function ProfilePage() {
     // Save to profiles immediately
     const sessionId = getSessionId();
     if (profile) {
-      await supabase.from("profiles").update({ photo_url: url }).eq("session_id", sessionId);
+      await supabase
+        .from("profiles")
+        .update({ photo_url: url })
+        .eq("session_id", sessionId);
     } else {
       await supabase.from("profiles").insert({
         session_id: sessionId,
@@ -165,6 +182,8 @@ export default function ProfilePage() {
       });
     }
     setProfile((prev) => (prev ? { ...prev, photo_url: url } : prev));
+    // Evict cache so the new photo is picked up everywhere
+    invalidateProfile(sessionId);
     setPhotoUploading(false);
   }
 
@@ -172,7 +191,10 @@ export default function ProfilePage() {
     setPhotoUrl(null);
     setProfile((prev) => (prev ? { ...prev, photo_url: null } : prev));
     const sessionId = getSessionId();
-    await supabase.from("profiles").update({ photo_url: null }).eq("session_id", sessionId);
+    await supabase
+      .from("profiles")
+      .update({ photo_url: null })
+      .eq("session_id", sessionId);
   }
 
   async function handleSaveProfile() {
@@ -290,8 +312,18 @@ export default function ProfilePage() {
                   className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-600 text-white flex items-center justify-center shadow-md hover:bg-red-500 transition-colors"
                   title="Remove profile photo"
                 >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               )}
@@ -305,9 +337,23 @@ export default function ProfilePage() {
                 {photoUploading ? (
                   <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
+                    />
                   </svg>
                 )}
               </button>
@@ -385,8 +431,18 @@ export default function ProfilePage() {
                       title="Install app QR code"
                       className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM17 14h1v1h-1zM14 14h1v1h-1zM20 17h1v1h-1zM17 17h1v3h-1zM14 17h1v1h-1zM14 20h4v1h-4z" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.8}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM17 14h1v1h-1zM14 14h1v1h-1zM20 17h1v1h-1zM17 17h1v3h-1zM14 17h1v1h-1zM14 20h4v1h-4z"
+                        />
                       </svg>
                       Install
                     </button>
@@ -462,7 +518,11 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-3">
               {posts.map((post) => (
-                <PostCard key={post.id} post={post} authorProfile={profileMap[post.session_id]} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  authorProfile={profileMap[post.session_id]}
+                />
               ))}
             </div>
           )
@@ -474,62 +534,99 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-3">
               {likedPosts.map((post) => (
-                <PostCard key={post.id} post={post} authorProfile={profileMap[post.session_id]} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  authorProfile={profileMap[post.session_id]}
+                />
               ))}
             </div>
           )
+        ) : activity.length === 0 ? (
+          <p className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+            No activity yet
+          </p>
         ) : (
-          activity.length === 0 ? (
-            <p className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-              No activity yet
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {activity.map((item, i) =>
-                item.type === "post" ? (
-                  <Link
-                    key={`post-${item.post.id}`}
-                    href={`/post/${item.post.id}`}
-                    className="flex gap-3 items-start bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 p-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-                        <span className="font-medium text-blue-600 dark:text-blue-400">Posted</span>
-                        {" · "}{timeAgo(item.created_at)}
-                      </p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{item.post.title}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{CATEGORY_LABELS[item.post.category]}</p>
-                    </div>
-                  </Link>
-                ) : (
-                  <Link
-                    key={`comment-${item.comment_id}`}
-                    href={`/post/${item.post_id}`}
-                    className="flex gap-3 items-start bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 p-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-                        <span className="font-medium text-green-600 dark:text-green-400">Commented</span>
-                        {" on "}<span className="text-gray-700 dark:text-gray-300 truncate">{item.post_title}</span>
-                        {" · "}{timeAgo(item.created_at)}
-                      </p>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{item.content}</p>
-                    </div>
-                  </Link>
-                )
-              )}
-            </div>
-          )
+          <div className="space-y-2">
+            {activity.map((item, i) =>
+              item.type === "post" ? (
+                <Link
+                  key={`post-${item.post.id}`}
+                  href={`/post/${item.post.id}`}
+                  className="flex gap-3 items-start bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 p-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg
+                      className="w-4 h-4 text-blue-600 dark:text-blue-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 4.5v15m7.5-7.5h-15"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                      <span className="font-medium text-blue-600 dark:text-blue-400">
+                        Posted
+                      </span>
+                      {" · "}
+                      {timeAgo(item.created_at)}
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                      {item.post.title}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {CATEGORY_LABELS[item.post.category]}
+                    </p>
+                  </div>
+                </Link>
+              ) : (
+                <Link
+                  key={`comment-${item.comment_id}`}
+                  href={`/post/${item.post_id}`}
+                  className="flex gap-3 items-start bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 p-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg
+                      className="w-4 h-4 text-green-600 dark:text-green-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                      <span className="font-medium text-green-600 dark:text-green-400">
+                        Commented
+                      </span>
+                      {" on "}
+                      <span className="text-gray-700 dark:text-gray-300 truncate">
+                        {item.post_title}
+                      </span>
+                      {" · "}
+                      {timeAgo(item.created_at)}
+                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                      {item.content}
+                    </p>
+                  </div>
+                </Link>
+              ),
+            )}
+          </div>
         )}
 
         {/* Subtle logout */}

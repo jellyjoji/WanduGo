@@ -8,6 +8,8 @@ import { timeAgo } from "@/lib/utils";
 import { useLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Message, Chat } from "@/types/database";
+import { getProfiles } from "@/lib/profileCache";
+import type { ProfileSnippet } from "@/lib/profileCache";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -18,6 +20,7 @@ export default function ChatRoomPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chat, setChat] = useState<Chat | null>(null);
   const [otherUserName, setOtherUserName] = useState<string | null>(null);
+  const [profileMap, setProfileMap] = useState<Record<string, ProfileSnippet | null>>({});
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -53,6 +56,8 @@ export default function ChatRoomPage() {
       if (members) {
         const other = members.find((m) => m.session_id !== myId);
         if (other) setOtherUserName(other.author_name);
+        const ids = members.map((m) => m.session_id);
+        if (ids.length > 0) getProfiles(ids).then(setProfileMap);
       }
     }
     fetchChat();
@@ -251,15 +256,30 @@ export default function ChatRoomPage() {
         )}
         {messages.map((msg) => {
           const isMe = msg.session_id === sessionId;
+          const senderProfile = profileMap[msg.session_id];
           return (
             <div
               key={msg.id}
-              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+              className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}
             >
+              {!isMe && (
+                senderProfile?.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={senderProfile.photo_url}
+                    alt={senderProfile.name}
+                    className="w-7 h-7 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-medium text-xs shrink-0">
+                    {(senderProfile?.name ?? msg.author_name)[0]?.toUpperCase()}
+                  </div>
+                )
+              )}
               <div className={`max-w-[75%] ${isMe ? "order-1" : ""}`}>
                 {!isMe && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 ml-1">
-                    {msg.author_name}
+                    {senderProfile?.name ?? msg.author_name}
                   </p>
                 )}
                 <div

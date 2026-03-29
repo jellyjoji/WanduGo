@@ -35,7 +35,12 @@ export default function PostDetailPage() {
   const [liked, setLiked] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [authorProfile, setAuthorProfile] = useState<ProfileSnippet | null>(null);
+  const [authorProfile, setAuthorProfile] = useState<ProfileSnippet | null>(
+    null,
+  );
+  const [commentProfileMap, setCommentProfileMap] = useState<
+    Record<string, ProfileSnippet | null>
+  >({});
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [editCategory, setEditCategory] = useState<PostCategory>("community");
@@ -92,6 +97,10 @@ export default function PostDetailPage() {
 
       if (commentData) {
         setComments(commentData as Comment[]);
+        const ids = [
+          ...new Set((commentData as Comment[]).map((c) => c.session_id)),
+        ];
+        if (ids.length > 0) getProfiles(ids).then(setCommentProfileMap);
       }
       setLoading(false);
     }
@@ -109,7 +118,11 @@ export default function PostDetailPage() {
           filter: `post_id=eq.${postId}`,
         },
         (payload) => {
-          setComments((prev) => [...prev, payload.new as Comment]);
+          const newComment = payload.new as Comment;
+          setComments((prev) => [...prev, newComment]);
+          getProfiles([newComment.session_id]).then((map) =>
+            setCommentProfileMap((prev) => ({ ...prev, ...map })),
+          );
         },
       )
       .subscribe();
@@ -376,9 +389,24 @@ export default function PostDetailPage() {
               className="p-2 rounded-full text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors disabled:opacity-50"
             >
               {deleting ? (
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                <svg
+                  className="w-5 h-5 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
                 </svg>
               ) : (
                 <svg
@@ -505,8 +533,6 @@ export default function PostDetailPage() {
             💬 Message
           </button>
         </div>
-
-
       </div>
 
       {/* Edit Modal */}
@@ -646,13 +672,24 @@ export default function PostDetailPage() {
           <div className="space-y-4">
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-sm shrink-0">
-                  {comment.author_name[0]?.toUpperCase()}
-                </div>
+                {commentProfileMap[comment.session_id]?.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={commentProfileMap[comment.session_id]!.photo_url!}
+                    alt={commentProfileMap[comment.session_id]!.name}
+                    className="w-8 h-8 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-sm shrink-0">
+                    {(commentProfileMap[comment.session_id]?.name ??
+                      comment.author_name)[0]?.toUpperCase()}
+                  </div>
+                )}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {comment.author_name}
+                      {commentProfileMap[comment.session_id]?.name ??
+                        comment.author_name}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {timeAgo(comment.created_at)}
