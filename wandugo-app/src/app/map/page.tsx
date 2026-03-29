@@ -13,9 +13,12 @@ import type { Post } from "@/types/database";
 import Header from "@/components/Header";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function MapPage() {
   const { lat, lng, radius } = useLocation();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const mapRef = useRef<HTMLDivElement>(null);
   const center = lat && lng ? { lat, lng } : null;
   const { map, mapsApi } = useGoogleMaps(mapRef, center);
@@ -42,10 +45,20 @@ export default function MapPage() {
     markersRef.current.forEach((m) => (m.map = null));
     markersRef.current = [];
 
+    // Counter-filter cancels out the CSS invert applied to the map container.
+    // filter and background must be merged into a single style attribute.
+    const filterStyle = 'filter:invert(90%) hue-rotate(180deg);';
+    const markerStyle = isDark
+      ? `${filterStyle}background:#1e293b;color:#f1f5f9;border-color:#475569;`
+      : 'background:#ffffff;color:#1f2937;border-color:#e5e7eb;';
+    const dotStyle = isDark
+      ? `${filterStyle}background:#2563eb;border-color:#1e293b;`
+      : 'background:#2563eb;border-color:#ffffff;';
+
     // Add user marker
     const userEl = document.createElement("div");
     userEl.innerHTML =
-      '<div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg"></div>';
+      `<div class="w-4 h-4 rounded-full border-2 shadow-lg" style="${dotStyle}"></div>`;
     const userMarker = new google.maps.marker.AdvancedMarkerElement({
       map,
       position: { lat, lng },
@@ -61,7 +74,7 @@ export default function MapPage() {
 
     nearbyPosts.forEach((post) => {
       const el = document.createElement("div");
-      el.innerHTML = `<div class="bg-white rounded-lg shadow-md px-2 py-1 text-xs font-medium border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow">${post.title.slice(0, 20)}${post.title.length > 20 ? "..." : ""}</div>`;
+      el.innerHTML = `<div class="rounded-lg shadow-md px-2 py-1 text-xs font-medium border cursor-pointer hover:shadow-lg transition-shadow" style="${markerStyle}">${post.title.slice(0, 20)}${post.title.length > 20 ? "..." : ""}</div>`;
 
       const marker = new google.maps.marker.AdvancedMarkerElement({
         map,
@@ -76,13 +89,17 @@ export default function MapPage() {
 
       markersRef.current.push(marker);
     });
-  }, [map, mapsApi, posts, lat, lng, radius]);
+  }, [map, mapsApi, posts, lat, lng, radius, isDark]);
 
   return (
     <>
       <Header />
       <div className="relative" style={{ height: "calc(100vh - 64px - 64px)" }}>
-        <div ref={mapRef} className="w-full h-full" />
+        <div
+          ref={mapRef}
+          className="w-full h-full"
+          style={isDark ? { filter: "invert(90%) hue-rotate(180deg)" } : undefined}
+        />
 
         {!center && <LoadingSpinner />}
 

@@ -17,12 +17,14 @@ import type { Post, Comment, PostCategory } from "@/types/database";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function PostDetailPage() {
   const params = useParams();
   const postId = params.id as string;
   const router = useRouter();
   const { lat, lng } = useLocation();
+  const { loading: authLoading } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -39,6 +41,13 @@ export default function PostDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const { notify } = useNotifications();
 
+  // Re-derive isOwner once auth state has fully resolved (prevents race condition
+  // where fetchPost runs before AuthContext finishes updating the session ID).
+  useEffect(() => {
+    if (!post || authLoading) return;
+    setIsOwner(post.session_id === getSessionId());
+  }, [post, authLoading]);
+
   // Restore liked state from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(`liked_${postId}`);
@@ -47,7 +56,7 @@ export default function PostDetailPage() {
     const cached = getCachedPost(postId);
     if (cached) {
       setPost(cached);
-      setIsOwner(cached.session_id === getSessionId());
+      // isOwner will be re-derived by the authLoading effect above
     }
   }, [postId]);
 
@@ -65,7 +74,7 @@ export default function PostDetailPage() {
 
       if (postData) {
         setPost(postData as Post);
-        setIsOwner(postData.session_id === getSessionId());
+        // isOwner is re-derived by the authLoading effect once auth is ready
       }
 
       const { data: commentData } = await supabase
