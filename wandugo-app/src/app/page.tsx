@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { useLocation } from "@/contexts/LocationContext";
 import { haversineDistance } from "@/lib/utils";
 import type { Post } from "@/types/database";
+import { getProfiles } from "@/lib/profileCache";
+import type { ProfileSnippet } from "@/lib/profileCache";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import CategoryFilter from "@/components/CategoryFilter";
@@ -18,6 +20,7 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("latest");
+  const [profileMap, setProfileMap] = useState<Record<string, ProfileSnippet | null>>({});
 
   useEffect(() => {
     async function fetchPosts() {
@@ -35,6 +38,9 @@ export default function FeedPage() {
       const { data, error } = await query;
       if (!error && data) {
         setPosts(data as Post[]);
+        // Batch-fetch profiles so author names/photos are always current
+        const sessionIds = [...new Set(data.map((p) => p.session_id))];
+        getProfiles(sessionIds).then(setProfileMap);
       }
       setLoading(false);
     }
@@ -124,7 +130,7 @@ export default function FeedPage() {
         ) : (
           <div className="space-y-3">
             {filteredAndSorted.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post.id} post={post} authorProfile={profileMap[post.session_id]} />
             ))}
           </div>
         )}

@@ -13,6 +13,8 @@ import {
   CATEGORY_COLORS,
 } from "@/lib/utils";
 import { getCachedPost } from "@/lib/postCache";
+import { getProfiles } from "@/lib/profileCache";
+import type { ProfileSnippet } from "@/lib/profileCache";
 import type { Post, Comment, PostCategory } from "@/types/database";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
@@ -33,6 +35,7 @@ export default function PostDetailPage() {
   const [liked, setLiked] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [authorProfile, setAuthorProfile] = useState<ProfileSnippet | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [editCategory, setEditCategory] = useState<PostCategory>("community");
@@ -74,6 +77,10 @@ export default function PostDetailPage() {
 
       if (postData) {
         setPost(postData as Post);
+        // Fetch author's current profile (name/photo may have changed since post was created)
+        getProfiles([postData.session_id]).then((map) => {
+          setAuthorProfile(map[postData.session_id] ?? null);
+        });
         // isOwner is re-derived by the authLoading effect once auth is ready
       }
 
@@ -431,12 +438,21 @@ export default function PostDetailPage() {
 
         {/* Author & Location Info */}
         <div className="flex items-center gap-3 py-3 border-t border-gray-100 dark:border-slate-700">
-          <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-semibold text-lg">
-            {post.author_name[0]?.toUpperCase()}
-          </div>
+          {authorProfile?.photo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={authorProfile.photo_url}
+              alt={authorProfile.name}
+              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-semibold text-lg flex-shrink-0">
+              {(authorProfile?.name ?? post.author_name)[0]?.toUpperCase()}
+            </div>
+          )}
           <div>
             <p className="font-medium text-gray-900 dark:text-gray-100">
-              {post.author_name}
+              {authorProfile?.name ?? post.author_name}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               <button

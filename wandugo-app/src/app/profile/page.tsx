@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { getSessionId, setUserName } from "@/lib/session";
 import { timeAgo, CATEGORY_LABELS } from "@/lib/utils";
+import { getProfiles, invalidateProfile } from "@/lib/profileCache";
+import type { ProfileSnippet } from "@/lib/profileCache";
 import type { Post, Profile } from "@/types/database";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
@@ -34,6 +36,7 @@ export default function ProfilePage() {
   const [showQR, setShowQR] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Post[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [profileMap, setProfileMap] = useState<Record<string, ProfileSnippet | null>>({});
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +95,12 @@ export default function ProfilePage() {
           .order("created_at", { ascending: false });
         if (likedData) setLikedPosts(likedData as Post[]);
       }
+
+      // Batch-fetch profiles for all posts so author info is always current
+      const allSessionIds = [
+        ...(postData ?? []).map((p) => p.session_id),
+      ];
+      getProfiles([...new Set(allSessionIds)]).then(setProfileMap);
 
       // Build activity feed: comments + posts merged and sorted by time
       const { data: commentData } = await supabase
@@ -202,32 +211,14 @@ export default function ProfilePage() {
       }
     }
 
-    // Propagate name change to all past content by this user
-    await Promise.all([
-      supabase
-        .from("posts")
-        .update({ author_name: name })
-        .eq("session_id", sessionId),
-      supabase
-        .from("comments")
-        .update({ author_name: name })
-        .eq("session_id", sessionId),
-      supabase
-        .from("chat_members")
-        .update({ author_name: name })
-        .eq("session_id", sessionId),
-      supabase
-        .from("messages")
-        .update({ author_name: name })
-        .eq("session_id", sessionId),
-    ]);
-
     setProfile({
       ...profile,
       ...profileData,
       rating: profile?.rating || 0,
       created_at: profile?.created_at || new Date().toISOString(),
     } as Profile);
+    // Evict cached profile so the updated name/photo is re-fetched everywhere
+    invalidateProfile(sessionId);
     setEditing(false);
   }
 
@@ -471,7 +462,7 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-3">
               {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
+                <PostCard key={post.id} post={post} authorProfile={profileMap[post.session_id]} />
               ))}
             </div>
           )
@@ -483,7 +474,7 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-3">
               {likedPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
+                <PostCard key={post.id} post={post} authorProfile={profileMap[post.session_id]} />
               ))}
             </div>
           )

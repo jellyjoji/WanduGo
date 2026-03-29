@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { Post } from "@/types/database";
+import type { ProfileSnippet } from "@/lib/profileCache";
 import {
   formatDistance,
   haversineDistance,
@@ -14,10 +15,12 @@ import { setCachedPost } from "@/lib/postCache";
 
 interface PostCardProps {
   post: Post;
+  authorProfile?: ProfileSnippet | null;
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, authorProfile }: PostCardProps) {
   const { lat, lng } = useLocation();
+  const authorName = authorProfile?.name ?? post.author_name;
   const distance =
     lat && lng ? haversineDistance(lat, lng, post.lat, post.lng) : null;
 
@@ -59,10 +62,15 @@ export default function PostCard({ post }: PostCardProps) {
 
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-medium">
-              {post.author_name[0]?.toUpperCase()}
-            </div>
-            <span>{post.author_name}</span>
+            {authorProfile?.photo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={authorProfile.photo_url} alt={authorName} className="w-6 h-6 rounded-full object-cover" />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-medium">
+                {authorName[0]?.toUpperCase()}
+              </div>
+            )}
+            <span>{authorName}</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">

@@ -21,6 +21,8 @@ export default function ChatRoomPage() {
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isInitialLoad = useRef(true);
   const sessionId = typeof window !== "undefined" ? getSessionId() : "";
 
   useEffect(() => {
@@ -81,7 +83,25 @@ export default function ChatRoomPage() {
   }, [chatId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    if (isInitialLoad.current) {
+      // Wait until real messages are loaded (skip the initial empty-array render)
+      if (messages.length === 0) return;
+      // Use rAF so the DOM has painted before we set scrollTop
+      requestAnimationFrame(() => {
+        if (container) container.scrollTop = container.scrollHeight;
+      });
+      isInitialLoad.current = false;
+      return;
+    }
+
+    // For new messages: scroll if user is near the bottom (within 150px)
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distanceFromBottom < 150) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages]);
 
   async function handleSend(e: React.FormEvent) {
@@ -104,6 +124,12 @@ export default function ChatRoomPage() {
     };
     setMessages((prev) => [...prev, optimistic]);
     setNewMessage("");
+    // Always scroll to bottom when the user sends a message
+    setTimeout(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      }
+    }, 0);
 
     const { data } = await supabase
       .from("messages")
@@ -179,7 +205,9 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-lg mx-auto">
+    // h-[calc(100dvh-4rem)]: 100dvh = real viewport, -4rem = BottomNav height (h-16)
+    // overflow-hidden on outer so only the messages div scrolls
+    <div className="flex flex-col max-w-lg mx-auto overflow-hidden" style={{ height: 'calc(100dvh - 4rem)' }}>
       {/* Chat Header */}
       <div className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3">
         <button
@@ -214,8 +242,8 @@ export default function ChatRoomPage() {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-950">
+      {/* Messages — min-h-0 is required so flex-1 + overflow-y-auto actually scrolls */}
+      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-950">
         {messages.length === 0 && (
           <p className="text-center text-gray-500 dark:text-gray-400 text-sm py-8">
             Start the conversation!
