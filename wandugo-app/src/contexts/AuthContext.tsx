@@ -31,6 +31,7 @@ interface AuthState {
     password: string,
     name: string,
   ) => Promise<string | null>;
+  resetPassword: (email: string) => Promise<string | null>;
   signOut: () => Promise<void>;
   updateUserMetaName: (name: string) => Promise<void>;
 }
@@ -45,6 +46,7 @@ const AuthContext = createContext<AuthState>({
   closeAuthModal: () => {},
   signIn: async () => null,
   signUp: async () => null,
+  resetPassword: async () => null,
   signOut: async () => {},
   updateUserMetaName: async () => {},
 });
@@ -151,6 +153,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const resetPassword = useCallback(
+    async (email: string): Promise<string | null> => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+      return error ? error.message : null;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [],
+  );
+
   const updateUserMetaName = useCallback(async (name: string) => {
     await supabase.auth.updateUser({ data: { name } });
     setUserName(name);
@@ -175,6 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         closeAuthModal,
         signIn,
         signUp,
+        resetPassword,
         signOut,
         updateUserMetaName,
       }}

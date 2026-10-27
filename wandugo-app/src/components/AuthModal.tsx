@@ -4,9 +4,16 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function AuthModal() {
-  const { showAuthModal, authModalTab, closeAuthModal, signIn, signUp } =
-    useAuth();
+  const {
+    showAuthModal,
+    authModalTab,
+    closeAuthModal,
+    signIn,
+    signUp,
+    resetPassword,
+  } = useAuth();
   const [tab, setTab] = useState<"login" | "signup">(authModalTab);
+  const [forgotPassword, setForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -16,6 +23,7 @@ export default function AuthModal() {
 
   useEffect(() => {
     setTab(authModalTab);
+    setForgotPassword(false);
     setError("");
     setSuccess("");
     setEmail("");
@@ -24,6 +32,20 @@ export default function AuthModal() {
   }, [authModalTab, showAuthModal]);
 
   if (!showAuthModal) return null;
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setLoading(true);
+    const err = await resetPassword(email);
+    if (err) {
+      setError(err);
+    } else {
+      setSuccess("Password reset link sent! Check your email.");
+    }
+    setLoading(false);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,7 +87,11 @@ export default function AuthModal() {
         <div className="flex items-center justify-between mb-5">
           <div className="sm:hidden w-10 h-1 bg-gray-300 dark:bg-slate-600 rounded-full mx-auto" />
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-            {tab === "login" ? "Log in to WanduGo" : "Create account"}
+            {forgotPassword
+              ? "Reset password"
+              : tab === "login"
+                ? "Log in to WanduGo"
+                : "Create account"}
           </h2>
           <button
             onClick={closeAuthModal}
@@ -88,25 +114,27 @@ export default function AuthModal() {
         </div>
 
         {/* Tabs */}
-        <div className="flex bg-gray-100 dark:bg-slate-800 rounded-xl p-1 mb-5">
-          {(["login", "signup"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => {
-                setTab(t);
-                setError("");
-                setSuccess("");
-              }}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
-                tab === t
-                  ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
-                  : "text-gray-500 dark:text-gray-400"
-              }`}
-            >
-              {t === "login" ? "Log in" : "Sign up"}
-            </button>
-          ))}
-        </div>
+        {!forgotPassword && (
+          <div className="flex bg-gray-100 dark:bg-slate-800 rounded-xl p-1 mb-5">
+            {(["login", "signup"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => {
+                  setTab(t);
+                  setError("");
+                  setSuccess("");
+                }}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  tab === t
+                    ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
+                    : "text-gray-500 dark:text-gray-400"
+                }`}
+              >
+                {t === "login" ? "Log in" : "Sign up"}
+              </button>
+            ))}
+          </div>
+        )}
 
         {success && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl">
@@ -120,80 +148,137 @@ export default function AuthModal() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {tab === "signup" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your display name"
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={tab === "signup" ? "Min 6 characters" : "••••••••"}
-              minLength={6}
-              className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 disabled:opacity-60 transition-colors"
-          >
-            {loading
-              ? "Please wait…"
-              : tab === "login"
-                ? "Log in"
-                : "Create account"}
-          </button>
-        </form>
+        {forgotPassword ? (
+          <>
+            <form onSubmit={handleForgotPassword} className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 disabled:opacity-60 transition-colors"
+              >
+                {loading ? "Please wait…" : "Send reset link"}
+              </button>
+            </form>
 
-        <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
-          {tab === "login"
-            ? "Don't have an account? "
-            : "Already have an account? "}
-          <button
-            onClick={() => {
-              setTab(tab === "login" ? "signup" : "login");
-              setError("");
-            }}
-            className="text-blue-600 font-medium hover:underline"
-          >
-            {tab === "login" ? "Sign up" : "Log in"}
-          </button>
-        </p>
+            <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+              <button
+                onClick={() => {
+                  setForgotPassword(false);
+                  setError("");
+                  setSuccess("");
+                }}
+                className="text-blue-600 font-medium hover:underline"
+              >
+                Back to log in
+              </button>
+            </p>
+          </>
+        ) : (
+          <>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {tab === "signup" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your display name"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Password
+                  </label>
+                  {tab === "login" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotPassword(true);
+                        setError("");
+                        setSuccess("");
+                      }}
+                      className="text-xs text-blue-600 font-medium hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={tab === "signup" ? "Min 6 characters" : "••••••••"}
+                  minLength={6}
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 disabled:opacity-60 transition-colors"
+              >
+                {loading
+                  ? "Please wait…"
+                  : tab === "login"
+                    ? "Log in"
+                    : "Create account"}
+              </button>
+            </form>
 
-        <p className="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">
-          You can browse WanduGo without an account.
-        </p>
+            <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+              {tab === "login"
+                ? "Don't have an account? "
+                : "Already have an account? "}
+              <button
+                onClick={() => {
+                  setTab(tab === "login" ? "signup" : "login");
+                  setError("");
+                }}
+                className="text-blue-600 font-medium hover:underline"
+              >
+                {tab === "login" ? "Sign up" : "Log in"}
+              </button>
+            </p>
+
+            <p className="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">
+              You can browse WanduGo without an account.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
