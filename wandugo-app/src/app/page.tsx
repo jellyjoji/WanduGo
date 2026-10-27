@@ -14,13 +14,41 @@ import SortSelector from "@/components/SortSelector";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
 
+const GROUPS: Record<string, { label: string; emoji: string; categories: string[] }> = {
+  jobs: { label: "Jobs", emoji: "💼", categories: ["jobs"] },
+  community: {
+    label: "Community",
+    emoji: "👥",
+    categories: ["community", "housing", "events", "tips"],
+  },
+  marketplace: {
+    label: "Market",
+    emoji: "🛒",
+    categories: ["marketplace", "buy-sell", "group-buy"],
+  },
+};
+
 export default function FeedPage() {
   const { lat, lng, radius, loading: locationLoading } = useLocation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [group, setGroup] = useState("all");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("latest");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
   const [profileMap, setProfileMap] = useState<Record<string, ProfileSnippet | null>>({});
+
+  // Read ?group= on mount (client-only, avoids forcing a Suspense/dynamic
+  // render of the whole feed just for a rarely-used deep link)
+  useEffect(() => {
+    const initialGroup = new URLSearchParams(window.location.search).get(
+      "group",
+    );
+    if (initialGroup && initialGroup in GROUPS) {
+      setGroup(initialGroup);
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -33,6 +61,8 @@ export default function FeedPage() {
 
       if (category !== "all") {
         query = query.eq("category", category);
+      } else if (group !== "all") {
+        query = query.in("category", GROUPS[group].categories);
       }
 
       const { data, error } = await query;
@@ -45,7 +75,7 @@ export default function FeedPage() {
       setLoading(false);
     }
     fetchPosts();
-  }, [category]);
+  }, [group, category]);
 
   const filteredAndSorted = useMemo(() => {
     let result = posts;
@@ -56,6 +86,18 @@ export default function FeedPage() {
         const dist = haversineDistance(lat, lng, post.lat, post.lng);
         return dist <= radius;
       });
+    }
+
+    // Price filter (marketplace group only)
+    if (priceMin) {
+      result = result.filter(
+        (p) => p.price !== null && p.price >= parseFloat(priceMin),
+      );
+    }
+    if (priceMax) {
+      result = result.filter(
+        (p) => p.price !== null && p.price <= parseFloat(priceMax),
+      );
     }
 
     // Sort
@@ -70,7 +112,9 @@ export default function FeedPage() {
     }
 
     return result;
-  }, [posts, lat, lng, radius, sort]);
+  }, [posts, lat, lng, radius, sort, priceMin, priceMax]);
+
+  const effectiveCategory = category !== "all" ? category : group !== "all" ? group : "all";
 
   return (
     <>
@@ -79,28 +123,117 @@ export default function FeedPage() {
         {/* Quick Navigation */}
         <div className="grid grid-cols-4 gap-2 mb-4">
           {[
-            { href: "/jobs", label: "Jobs", emoji: "💼" },
-            { href: "/community", label: "Community", emoji: "👥" },
-            { href: "/marketplace", label: "Market", emoji: "🛒" },
-            { href: "/map", label: "Map", emoji: "🗺️" },
-          ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex flex-col items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <span className="text-2xl mb-1">{item.emoji}</span>
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                {item.label}
-              </span>
-            </Link>
-          ))}
+            ...Object.entries(GROUPS).map(([key, g]) => ({
+              key,
+              label: g.label,
+              emoji: g.emoji,
+            })),
+            { key: "map-link", label: "Map", emoji: "🗺️" },
+          ].map((item) =>
+            item.key === "map-link" ? (
+              <Link
+                key={item.key}
+                href="/map"
+                className="flex flex-col items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <span className="text-2xl mb-1">{item.emoji}</span>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {item.label}
+                </span>
+              </Link>
+            ) : (
+              <button
+                key={item.key}
+                onClick={() => {
+                  setGroup(item.key);
+                  setCategory("all");
+                }}
+                className={`flex flex-col items-center p-3 rounded-xl border shadow-sm hover:shadow-md transition-shadow ${
+                  group === item.key
+                    ? "bg-blue-600 border-blue-600"
+                    : "bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-700"
+                }`}
+              >
+                <span className="text-2xl mb-1">{item.emoji}</span>
+                <span
+                  className={`text-xs font-medium ${
+                    group === item.key
+                      ? "text-white"
+                      : "text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </button>
+            ),
+          )}
         </div>
 
-        {/* Filters */}
-        <div className="mb-4">
-          <CategoryFilter selected={category} onChange={setCategory} />
+        {/* Group filter (All / Jobs / Community / Market) */}
+        <div className="mb-3">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <button
+              onClick={() => {
+                setGroup("all");
+                setCategory("all");
+              }}
+              className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                group === "all"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600"
+              }`}
+            >
+              All
+            </button>
+            {Object.entries(GROUPS).map(([key, g]) => (
+              <button
+                key={key}
+                onClick={() => {
+                  setGroup(key);
+                  setCategory("all");
+                }}
+                className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  group === key
+                    ? "bg-blue-600 text-white"
+                    : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600"
+                }`}
+              >
+                {g.emoji} {g.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Sub-category filter, only when a group with multiple categories is selected */}
+        {group !== "all" && GROUPS[group].categories.length > 1 && (
+          <div className="mb-3">
+            <CategoryFilter
+              selected={category}
+              onChange={setCategory}
+              categories={GROUPS[group].categories}
+            />
+          </div>
+        )}
+
+        {/* Price filter, marketplace group only */}
+        {group === "marketplace" && (
+          <div className="flex gap-2 mb-4">
+            <input
+              type="number"
+              placeholder="Min $"
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="number"
+              placeholder="Max $"
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        )}
 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -121,7 +254,11 @@ export default function FeedPage() {
               Try increasing the search radius or be the first to post!
             </p>
             <Link
-              href="/create"
+              href={
+                effectiveCategory !== "all"
+                  ? `/create?category=${effectiveCategory}`
+                  : "/create"
+              }
               className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Create Post

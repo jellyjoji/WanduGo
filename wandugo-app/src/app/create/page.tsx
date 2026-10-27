@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,12 +11,26 @@ import { CATEGORY_LABELS } from "@/lib/utils";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function CreatePostPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <CreatePostForm />
+    </Suspense>
+  );
+}
+
+function CreatePostForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { lat, lng } = useLocation();
   const { user, loading: authLoading, openAuthModal } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState<PostCategory>("community");
+  const initialCategory = searchParams.get("category");
+  const [category, setCategory] = useState<PostCategory>(
+    initialCategory && initialCategory in CATEGORY_LABELS
+      ? (initialCategory as PostCategory)
+      : "community",
+  );
   const [price, setPrice] = useState("");
   const [locationText, setLocationText] = useState("");
   const [postLat, setPostLat] = useState<number | null>(null);
