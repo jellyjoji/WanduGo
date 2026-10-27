@@ -582,7 +582,7 @@ export default function ProfilePage() {
                       {item.post.title}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {CATEGORY_LABELS[item.post.category]}
+                      {CATEGORY_LABELS[item.post.category] || item.post.category}
                     </p>
                   </div>
                 </Link>

@@ -7,19 +7,15 @@ import { haversineDistance } from "@/lib/utils";
 import type { Post } from "@/types/database";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
-import CategoryFilter from "@/components/CategoryFilter";
 import CategoryTabs from "@/components/CategoryTabs";
 import SortSelector from "@/components/SortSelector";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
 
-const marketCategories = ["marketplace", "buy-sell", "group-buy"];
-
 export default function MarketplacePage() {
   const { lat, lng, radius, loading: locationLoading } = useLocation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("latest");
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
@@ -27,28 +23,18 @@ export default function MarketplacePage() {
   useEffect(() => {
     async function fetchPosts() {
       setLoading(true);
-      let query = supabase
+      const { data } = await supabase
         .from("posts")
         .select("*")
-        .in("category", marketCategories)
+        .eq("category", "marketplace")
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (category !== "all") {
-        query = supabase
-          .from("posts")
-          .select("*")
-          .eq("category", category)
-          .order("created_at", { ascending: false })
-          .limit(50);
-      }
-
-      const { data } = await query;
       if (data) setPosts(data as Post[]);
       setLoading(false);
     }
     fetchPosts();
-  }, [category]);
+  }, []);
 
   const filteredAndSorted = useMemo(() => {
     let result = posts;
@@ -92,18 +78,10 @@ export default function MarketplacePage() {
               🛒 Marketplace
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Buy, sell, and group buy
+              Buy and sell nearby
             </p>
           </div>
           <SortSelector value={sort} onChange={setSort} />
-        </div>
-
-        <div className="mb-4">
-          <CategoryFilter
-            selected={category}
-            onChange={setCategory}
-            categories={marketCategories}
-          />
         </div>
 
         {/* Price Filter */}
@@ -125,7 +103,7 @@ export default function MarketplacePage() {
         </div>
 
         <Link
-          href={`/create?category=${category !== "all" ? category : "marketplace"}`}
+          href="/create?category=marketplace"
           className="block w-full text-center py-3 mb-4 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors"
         >
           + List an Item

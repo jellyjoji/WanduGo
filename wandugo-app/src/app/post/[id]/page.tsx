@@ -442,7 +442,7 @@ export default function PostDetailPage() {
           <span
             className={`text-xs font-medium px-2 py-1 rounded-full ${CATEGORY_COLORS[post.category] || "bg-gray-100"}`}
           >
-            {CATEGORY_LABELS[post.category]}
+            {CATEGORY_LABELS[post.category] || post.category}
           </span>
           {distance !== null && (
             <span className="text-xs text-gray-500 dark:text-gray-400">

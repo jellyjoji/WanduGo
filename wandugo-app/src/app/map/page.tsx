@@ -127,7 +127,7 @@ export default function MapPage() {
             <span
               className={`text-xs font-medium px-2 py-1 rounded-full ${CATEGORY_COLORS[selectedPost.category] || "bg-gray-100"}`}
             >
-              {CATEGORY_LABELS[selectedPost.category]}
+              {CATEGORY_LABELS[selectedPost.category] || selectedPost.category}
             </span>
             <h3 className="font-semibold mt-2 mb-1">{selectedPost.title}</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
