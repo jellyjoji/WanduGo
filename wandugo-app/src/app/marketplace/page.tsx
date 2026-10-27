@@ -8,6 +8,7 @@ import type { Post } from "@/types/database";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import CategoryFilter from "@/components/CategoryFilter";
+import CategoryTabs from "@/components/CategoryTabs";
 import SortSelector from "@/components/SortSelector";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
@@ -84,6 +85,7 @@ export default function MarketplacePage() {
     <>
       <Header />
       <div className="max-w-lg mx-auto px-4 py-4">
+        <CategoryTabs />
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">

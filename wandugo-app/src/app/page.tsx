@@ -9,6 +9,7 @@ import { getProfiles } from "@/lib/profileCache";
 import type { ProfileSnippet } from "@/lib/profileCache";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
+import CategoryTabs from "@/components/CategoryTabs";
 import SortSelector from "@/components/SortSelector";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
@@ -69,25 +70,7 @@ export default function FeedPage() {
     <>
       <Header />
       <div className="max-w-lg mx-auto px-4 py-4">
-        {/* Quick Navigation */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          {[
-            { href: "/jobs", label: "Jobs", emoji: "💼" },
-            { href: "/community", label: "Community", emoji: "👥" },
-            { href: "/marketplace", label: "Market", emoji: "🛒" },
-          ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex flex-col items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <span className="text-2xl mb-1">{item.emoji}</span>
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                {item.label}
-              </span>
-            </Link>
-          ))}
-        </div>
+        <CategoryTabs />
 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
