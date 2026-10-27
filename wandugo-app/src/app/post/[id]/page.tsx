@@ -26,7 +26,7 @@ export default function PostDetailPage() {
   const postId = params.id as string;
   const router = useRouter();
   const { lat, lng } = useLocation();
-  const { loading: authLoading } = useAuth();
+  const { user, loading: authLoading, openAuthModal } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -134,7 +134,7 @@ export default function PostDetailPage() {
 
   async function handleComment(e: React.FormEvent) {
     e.preventDefault();
-    if (!newComment.trim() || submitting) return;
+    if (!user || !newComment.trim() || submitting) return;
 
     setSubmitting(true);
     const sessionId = getSessionId();
@@ -162,6 +162,10 @@ export default function PostDetailPage() {
   }
 
   async function handleLike() {
+    if (!user) {
+      openAuthModal("login");
+      return;
+    }
     if (!post) return;
     const next = !liked;
     const delta = next ? 1 : -1;
@@ -184,6 +188,10 @@ export default function PostDetailPage() {
   }
 
   async function handleStartChat(isApplication = false) {
+    if (!user) {
+      openAuthModal("login");
+      return;
+    }
     if (!post) return;
     const sessionId = getSessionId();
     const authorName = getUserName();
@@ -705,22 +713,31 @@ export default function PostDetailPage() {
         )}
 
         {/* Comment Input */}
-        <form onSubmit={handleComment} className="mt-4 flex gap-2">
-          <input
-            type="text"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Write a comment..."
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-full text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        {user ? (
+          <form onSubmit={handleComment} className="mt-4 flex gap-2">
+            <input
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Write a comment..."
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-full text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="submit"
+              disabled={!newComment.trim() || submitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+            >
+              Send
+            </button>
+          </form>
+        ) : (
           <button
-            type="submit"
-            disabled={!newComment.trim() || submitting}
-            className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+            onClick={() => openAuthModal("login")}
+            className="mt-4 w-full py-2.5 border border-gray-300 dark:border-slate-600 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
           >
-            Send
+            Log in to comment
           </button>
-        </form>
+        )}
       </div>
     </div>
   );
