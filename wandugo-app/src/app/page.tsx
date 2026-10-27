@@ -120,58 +120,9 @@ export default function FeedPage() {
     <>
       <Header />
       <div className="max-w-lg mx-auto px-4 py-4">
-        {/* Quick Navigation */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          {[
-            ...Object.entries(GROUPS).map(([key, g]) => ({
-              key,
-              label: g.label,
-              emoji: g.emoji,
-            })),
-            { key: "map-link", label: "Map", emoji: "🗺️" },
-          ].map((item) =>
-            item.key === "map-link" ? (
-              <Link
-                key={item.key}
-                href="/map"
-                className="flex flex-col items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <span className="text-2xl mb-1">{item.emoji}</span>
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {item.label}
-                </span>
-              </Link>
-            ) : (
-              <button
-                key={item.key}
-                onClick={() => {
-                  setGroup(item.key);
-                  setCategory("all");
-                }}
-                className={`flex flex-col items-center p-3 rounded-xl border shadow-sm hover:shadow-md transition-shadow ${
-                  group === item.key
-                    ? "bg-blue-600 border-blue-600"
-                    : "bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-700"
-                }`}
-              >
-                <span className="text-2xl mb-1">{item.emoji}</span>
-                <span
-                  className={`text-xs font-medium ${
-                    group === item.key
-                      ? "text-white"
-                      : "text-gray-700 dark:text-gray-300"
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </button>
-            ),
-          )}
-        </div>
-
         {/* Group filter (All / Jobs / Community / Market) */}
-        <div className="mb-3">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex-1 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <button
               onClick={() => {
                 setGroup("all");
@@ -202,6 +153,12 @@ export default function FeedPage() {
               </button>
             ))}
           </div>
+          <Link
+            href="/map"
+            className="shrink-0 flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600"
+          >
+            🗺️ Map
+          </Link>
         </div>
 
         {/* Sub-category filter, only when a group with multiple categories is selected */}
