@@ -8,7 +8,7 @@ import type { Post } from "@/types/database";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import CategoryTabs from "@/components/CategoryTabs";
-import SortSelector from "@/components/SortSelector";
+import RadiusSelector from "@/components/RadiusSelector";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
 
@@ -16,7 +16,6 @@ export default function MarketplacePage() {
   const { lat, lng, radius, loading: locationLoading } = useLocation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sort, setSort] = useState("latest");
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
 
@@ -55,17 +54,8 @@ export default function MarketplacePage() {
       );
     }
     // Sort
-    if (sort === "distance" && lat && lng) {
-      result = [...result].sort(
-        (a, b) =>
-          haversineDistance(lat, lng, a.lat, a.lng) -
-          haversineDistance(lat, lng, b.lat, b.lng),
-      );
-    } else if (sort === "popular") {
-      result = [...result].sort((a, b) => b.likes - a.likes);
-    }
     return result;
-  }, [posts, lat, lng, radius, sort, priceMin, priceMax]);
+  }, [posts, lat, lng, radius, priceMin, priceMax]);
 
   return (
     <>
@@ -81,7 +71,7 @@ export default function MarketplacePage() {
               Buy and sell nearby
             </p>
           </div>
-          <SortSelector value={sort} onChange={setSort} />
+          <RadiusSelector />
         </div>
 
         {/* Price Filter */}

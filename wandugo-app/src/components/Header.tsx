@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications } from "@/hooks/useNotifications";
 
 export default function Header() {
-  const { radius, setRadius } = useLocation();
   const { user, openAuthModal } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { unreadCount } = useNotifications();
@@ -20,19 +18,6 @@ export default function Header() {
             <img src="/logo.svg" alt="WanduGo" className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-2">
-            <select
-              value={radius}
-              onChange={(e) => setRadius(Number(e.target.value))}
-              className="text-sm border border-gray-300 dark:border-slate-600 rounded-lg px-2 py-1 bg-white dark:bg-slate-800 dark:text-gray-200"
-            >
-              <option value={3}>3km</option>
-              <option value={5}>5km</option>
-              <option value={10}>10km</option>
-              <option value={25}>25km</option>
-              <option value={50}>50km</option>
-              <option value={99999}>All</option>
-            </select>
-
             {/* Dark mode toggle */}
             <button
               onClick={toggleTheme}

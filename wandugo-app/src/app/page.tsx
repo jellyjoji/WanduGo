@@ -10,7 +10,7 @@ import type { ProfileSnippet } from "@/lib/profileCache";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import CategoryTabs from "@/components/CategoryTabs";
-import SortSelector from "@/components/SortSelector";
+import RadiusSelector from "@/components/RadiusSelector";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
 
@@ -18,7 +18,6 @@ export default function FeedPage() {
   const { lat, lng, radius, loading: locationLoading } = useLocation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sort, setSort] = useState("latest");
   const [profileMap, setProfileMap] = useState<Record<string, ProfileSnippet | null>>({});
 
   useEffect(() => {
@@ -52,19 +51,8 @@ export default function FeedPage() {
       });
     }
 
-    // Sort
-    if (sort === "distance" && lat && lng) {
-      result = [...result].sort((a, b) => {
-        const distA = haversineDistance(lat, lng, a.lat, a.lng);
-        const distB = haversineDistance(lat, lng, b.lat, b.lng);
-        return distA - distB;
-      });
-    } else if (sort === "popular") {
-      result = [...result].sort((a, b) => b.likes - a.likes);
-    }
-
     return result;
-  }, [posts, lat, lng, radius, sort]);
+  }, [posts, lat, lng, radius]);
 
   return (
     <>
@@ -76,7 +64,7 @@ export default function FeedPage() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Nearby Posts
           </h2>
-          <SortSelector value={sort} onChange={setSort} />
+          <RadiusSelector />
         </div>
 
         {/* Posts */}

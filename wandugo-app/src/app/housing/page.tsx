@@ -8,7 +8,7 @@ import type { Post } from "@/types/database";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import CategoryTabs from "@/components/CategoryTabs";
-import SortSelector from "@/components/SortSelector";
+import RadiusSelector from "@/components/RadiusSelector";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
 
@@ -16,7 +16,6 @@ export default function HousingPage() {
   const { lat, lng, radius, loading: locationLoading } = useLocation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sort, setSort] = useState("latest");
 
   useEffect(() => {
     async function fetchHousing() {
@@ -41,17 +40,8 @@ export default function HousingPage() {
         (p) => haversineDistance(lat, lng, p.lat, p.lng) <= radius,
       );
     }
-    if (sort === "distance" && lat && lng) {
-      result = [...result].sort(
-        (a, b) =>
-          haversineDistance(lat, lng, a.lat, a.lng) -
-          haversineDistance(lat, lng, b.lat, b.lng),
-      );
-    } else if (sort === "popular") {
-      result = [...result].sort((a, b) => b.likes - a.likes);
-    }
     return result;
-  }, [posts, lat, lng, radius, sort]);
+  }, [posts, lat, lng, radius]);
 
   return (
     <>
@@ -67,7 +57,7 @@ export default function HousingPage() {
               Find housing & rentals nearby
             </p>
           </div>
-          <SortSelector value={sort} onChange={setSort} />
+          <RadiusSelector />
         </div>
 
         <Link
