@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Message, Chat } from "@/types/database";
 import { getProfiles } from "@/lib/profileCache";
 import type { ProfileSnippet } from "@/lib/profileCache";
+import Image from "next/image";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -264,10 +265,11 @@ export default function ChatRoomPage() {
             >
               {!isMe && (
                 senderProfile?.photo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={senderProfile.photo_url}
                     alt={senderProfile.name}
+                    width={28}
+                    height={28}
                     className="w-7 h-7 rounded-full object-cover shrink-0"
                   />
                 ) : (

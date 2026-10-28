@@ -18,6 +18,7 @@ import type { ProfileSnippet } from "@/lib/profileCache";
 import type { Post, Comment, PostCategory } from "@/types/database";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
+import Image from "next/image";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -464,21 +465,26 @@ export default function PostDetailPage() {
         </p>
 
         {post.image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={post.image_url}
-            alt={post.title}
-            className="w-full rounded-xl object-cover max-h-80 mb-4"
-          />
+          <div className="relative w-full h-80 rounded-xl mb-4 overflow-hidden">
+            <Image
+              src={post.image_url}
+              alt={post.title}
+              fill
+              sizes="(max-width: 512px) 100vw, 512px"
+              className="object-cover"
+              priority
+            />
+          </div>
         )}
 
         {/* Author & Location Info */}
         <div className="flex items-center gap-3 py-3 border-t border-gray-100 dark:border-slate-700">
           {authorProfile?.photo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={authorProfile.photo_url}
               alt={authorProfile.name}
+              width={40}
+              height={40}
               className="w-10 h-10 rounded-full object-cover flex-shrink-0"
             />
           ) : (
@@ -681,10 +687,11 @@ export default function PostDetailPage() {
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
                 {commentProfileMap[comment.session_id]?.photo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={commentProfileMap[comment.session_id]!.photo_url!}
                     alt={commentProfileMap[comment.session_id]!.name}
+                    width={32}
+                    height={32}
                     className="w-8 h-8 rounded-full object-cover shrink-0"
                   />
                 ) : (

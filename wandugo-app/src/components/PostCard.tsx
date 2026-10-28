@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { Post } from "@/types/database";
 import type { ProfileSnippet } from "@/lib/profileCache";
 import {
@@ -48,12 +49,15 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
         </p>
 
         {post.image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={post.image_url}
-            alt={post.title}
-            className="w-full h-40 object-cover rounded-lg mb-3"
-          />
+          <div className="relative w-full h-40 rounded-lg mb-3 overflow-hidden">
+            <Image
+              src={post.image_url}
+              alt={post.title}
+              fill
+              sizes="(max-width: 512px) 100vw, 512px"
+              className="object-cover"
+            />
+          </div>
         )}
 
         {post.price !== null && post.price > 0 && (
@@ -63,8 +67,13 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-2">
             {authorProfile?.photo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={authorProfile.photo_url} alt={authorName} className="w-6 h-6 rounded-full object-cover" />
+              <Image
+                src={authorProfile.photo_url}
+                alt={authorName}
+                width={24}
+                height={24}
+                className="w-6 h-6 rounded-full object-cover"
+              />
             ) : (
               <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-medium">
                 {authorName[0]?.toUpperCase()}

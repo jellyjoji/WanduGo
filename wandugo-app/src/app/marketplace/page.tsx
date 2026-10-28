@@ -1,39 +1,21 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { supabase } from "@/lib/supabase";
+import { useState, useMemo } from "react";
 import { useLocation } from "@/contexts/LocationContext";
 import { haversineDistance } from "@/lib/utils";
-import type { Post } from "@/types/database";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import CategoryTabs from "@/components/CategoryTabs";
 import RadiusSelector from "@/components/RadiusSelector";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
+import { useCategoryPosts } from "@/hooks/useCategoryPosts";
 
 export default function MarketplacePage() {
   const { lat, lng, radius, loading: locationLoading } = useLocation();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { posts, loading } = useCategoryPosts("marketplace");
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
-
-  useEffect(() => {
-    async function fetchPosts() {
-      setLoading(true);
-      const { data } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("category", "marketplace")
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (data) setPosts(data as Post[]);
-      setLoading(false);
-    }
-    fetchPosts();
-  }, []);
 
   const filteredAndSorted = useMemo(() => {
     let result = posts;

@@ -13,6 +13,7 @@ import PostCard from "@/components/PostCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import QRInstallModal from "@/components/QRInstallModal";
 import Link from "next/link";
+import Image from "next/image";
 
 type ActivityItem =
   | { type: "post"; post: Post; created_at: string }
@@ -294,10 +295,11 @@ export default function ProfilePage() {
             {/* Avatar with upload overlay */}
             <div className="relative shrink-0">
               {photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={photoUrl}
                   alt={name || "Profile photo"}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-slate-600"
                 />
               ) : (
