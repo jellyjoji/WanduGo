@@ -76,11 +76,14 @@ export default function PostDetailPage() {
       const hasCached = !!getCachedPost(postId);
       if (hasCached) setLoading(false);
 
-      const { data: postData } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("id", postId)
-        .single();
+      const [{ data: postData }, { data: commentData }] = await Promise.all([
+        supabase.from("posts").select("*").eq("id", postId).single(),
+        supabase
+          .from("comments")
+          .select("*")
+          .eq("post_id", postId)
+          .order("created_at", { ascending: true }),
+      ]);
 
       if (postData) {
         setPost(postData as Post);
@@ -90,12 +93,6 @@ export default function PostDetailPage() {
         });
         // isOwner is re-derived by the authLoading effect once auth is ready
       }
-
-      const { data: commentData } = await supabase
-        .from("comments")
-        .select("*")
-        .eq("post_id", postId)
-        .order("created_at", { ascending: true });
 
       if (commentData) {
         setComments(commentData as Comment[]);

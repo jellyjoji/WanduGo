@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 
 interface LocationState {
@@ -78,18 +79,21 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
     fetchLocation();
   }, [fetchLocation]);
 
+  const value = useMemo(
+    () => ({
+      lat,
+      lng,
+      loading,
+      error,
+      radius,
+      setRadius,
+      refresh: fetchLocation,
+    }),
+    [lat, lng, loading, error, radius, fetchLocation],
+  );
+
   return (
-    <LocationContext.Provider
-      value={{
-        lat,
-        lng,
-        loading,
-        error,
-        radius,
-        setRadius,
-        refresh: fetchLocation,
-      }}
-    >
+    <LocationContext.Provider value={value}>
       {children}
     </LocationContext.Provider>
   );

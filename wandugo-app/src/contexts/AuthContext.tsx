@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { supabase as dbClient } from "@/lib/supabase";
@@ -176,26 +177,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        displayName,
-        loading,
-        showAuthModal,
-        authModalTab,
-        openAuthModal,
-        closeAuthModal,
-        signIn,
-        signUp,
-        resetPassword,
-        signOut,
-        updateUserMetaName,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      displayName,
+      loading,
+      showAuthModal,
+      authModalTab,
+      openAuthModal,
+      closeAuthModal,
+      signIn,
+      signUp,
+      resetPassword,
+      signOut,
+      updateUserMetaName,
+    }),
+    [
+      user,
+      displayName,
+      loading,
+      showAuthModal,
+      authModalTab,
+      openAuthModal,
+      closeAuthModal,
+      signIn,
+      signUp,
+      resetPassword,
+      signOut,
+      updateUserMetaName,
+    ],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
