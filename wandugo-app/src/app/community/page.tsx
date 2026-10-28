@@ -13,7 +13,7 @@ import { useCategoryPosts } from "@/hooks/useCategoryPosts";
 
 export default function CommunityPage() {
   const { lat, lng, radius, loading: locationLoading } = useLocation();
-  const { posts, loading } = useCategoryPosts("community");
+  const { posts, loading, profiles } = useCategoryPosts("community");
 
   const filteredAndSorted = useMemo(() => {
     let result = posts;
@@ -63,7 +63,7 @@ export default function CommunityPage() {
         ) : (
           <div className="space-y-3">
             {filteredAndSorted.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post.id} post={post} authorProfile={profiles[post.session_id]} />
             ))}
           </div>
         )}

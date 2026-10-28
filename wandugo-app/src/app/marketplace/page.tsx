@@ -13,7 +13,7 @@ import { useCategoryPosts } from "@/hooks/useCategoryPosts";
 
 export default function MarketplacePage() {
   const { lat, lng, radius, loading: locationLoading } = useLocation();
-  const { posts, loading } = useCategoryPosts("marketplace");
+  const { posts, loading, profiles } = useCategoryPosts("marketplace");
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
 
@@ -95,7 +95,7 @@ export default function MarketplacePage() {
         ) : (
           <div className="space-y-3">
             {filteredAndSorted.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post.id} post={post} authorProfile={profiles[post.session_id]} />
             ))}
           </div>
         )}

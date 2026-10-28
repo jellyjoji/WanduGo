@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Post, PostCategory } from "@/types/database";
+import { getProfiles, type ProfileSnippet } from "@/lib/profileCache";
 
 // Module-level cache — persists across client-side navigation within the session
 const cache = new Map<string, Post[]>();
@@ -11,6 +12,9 @@ export function useCategoryPosts(category: PostCategory | null) {
   const key = category ?? "__all__";
   const [posts, setPosts] = useState<Post[]>(() => cache.get(key) ?? []);
   const [loading, setLoading] = useState(!cache.has(key));
+  const [profiles, setProfiles] = useState<
+    Record<string, ProfileSnippet | null>
+  >({});
 
   useEffect(() => {
     let cancelled = false;
@@ -36,6 +40,10 @@ export function useCategoryPosts(category: PostCategory | null) {
       if (data) {
         cache.set(key, data as Post[]);
         setPosts(data as Post[]);
+        const profileMap = await getProfiles(
+          (data as Post[]).map((p) => p.session_id),
+        );
+        if (!cancelled) setProfiles(profileMap);
       }
       setLoading(false);
     }
@@ -46,5 +54,5 @@ export function useCategoryPosts(category: PostCategory | null) {
     };
   }, [key, category]);
 
-  return { posts, loading };
+  return { posts, loading, profiles };
 }

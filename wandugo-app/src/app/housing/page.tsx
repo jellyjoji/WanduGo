@@ -13,7 +13,7 @@ import { useCategoryPosts } from "@/hooks/useCategoryPosts";
 
 export default function HousingPage() {
   const { lat, lng, radius, loading: locationLoading } = useLocation();
-  const { posts, loading } = useCategoryPosts("housing");
+  const { posts, loading, profiles } = useCategoryPosts("housing");
 
   const filteredAndSorted = useMemo(() => {
     let result = posts;
@@ -63,7 +63,7 @@ export default function HousingPage() {
         ) : (
           <div className="space-y-3">
             {filteredAndSorted.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post.id} post={post} authorProfile={profiles[post.session_id]} />
             ))}
           </div>
         )}
