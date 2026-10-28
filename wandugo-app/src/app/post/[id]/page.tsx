@@ -33,6 +33,11 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [replyTo, setReplyTo] = useState<{
+    id: string;
+    name: string;
+    sessionId: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -136,23 +141,42 @@ export default function PostDetailPage() {
     setSubmitting(true);
     const sessionId = getSessionId();
     const authorName = getUserName();
+    const trimmed = newComment.trim();
 
     await supabase.from("comments").insert({
       post_id: postId,
-      content: newComment.trim(),
+      content: trimmed,
       session_id: sessionId,
       author_name: authorName,
+      parent_id: replyTo?.id ?? null,
     });
 
     setNewComment("");
     setSubmitting(false);
+    setReplyTo(null);
+
+    const preview = `${trimmed.slice(0, 60)}${trimmed.length > 60 ? "…" : ""}`;
 
     // Notify the post author
-    if (post) {
+    if (post && post.session_id !== sessionId) {
       await notify({
         recipientSessionId: post.session_id,
         type: "comment",
-        content: `${authorName} commented on your post: "${newComment.trim().slice(0, 60)}${newComment.trim().length > 60 ? "…" : ""}"`,
+        content: `${authorName} commented on your post: "${preview}"`,
+        postId: postId,
+      });
+    }
+
+    // Notify the comment author being replied to, if different
+    if (
+      replyTo &&
+      replyTo.sessionId !== sessionId &&
+      replyTo.sessionId !== post?.session_id
+    ) {
+      await notify({
+        recipientSessionId: replyTo.sessionId,
+        type: "comment",
+        content: `${authorName} replied to your comment: "${preview}"`,
         postId: postId,
       });
     }
@@ -509,58 +533,91 @@ export default function PostDetailPage() {
           </p>
         ) : (
           <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment.id} className="flex gap-3">
-                {commentProfileMap[comment.session_id]?.photo_url ? (
-                  <Image
-                    src={commentProfileMap[comment.session_id]!.photo_url!}
-                    alt={commentProfileMap[comment.session_id]!.name}
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-sm shrink-0">
-                    {(commentProfileMap[comment.session_id]?.name ??
-                      comment.author_name)[0]?.toUpperCase()}
+            {comments
+              .filter((c) => !c.parent_id)
+              .map((comment) => {
+                const replies = comments.filter(
+                  (c) => c.parent_id === comment.id,
+                );
+                return (
+                  <div key={comment.id}>
+                    <CommentRow
+                      comment={comment}
+                      profile={commentProfileMap[comment.session_id]}
+                      canReply={!!user}
+                      onReply={() =>
+                        setReplyTo({
+                          id: comment.id,
+                          name:
+                            commentProfileMap[comment.session_id]?.name ??
+                            comment.author_name,
+                          sessionId: comment.session_id,
+                        })
+                      }
+                    />
+                    {replies.length > 0 && (
+                      <div className="mt-3 ml-11 space-y-3 border-l-2 border-gray-100 dark:border-slate-700 pl-3">
+                        {replies.map((reply) => (
+                          <CommentRow
+                            key={reply.id}
+                            comment={reply}
+                            profile={commentProfileMap[reply.session_id]}
+                            canReply={!!user}
+                            onReply={() =>
+                              setReplyTo({
+                                id: comment.id,
+                                name:
+                                  commentProfileMap[reply.session_id]?.name ??
+                                  reply.author_name,
+                                sessionId: reply.session_id,
+                              })
+                            }
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {commentProfileMap[comment.session_id]?.name ??
-                        comment.author_name}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {timeAgo(comment.created_at)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">
-                    {comment.content}
-                  </p>
-                </div>
-              </div>
-            ))}
+                );
+              })}
           </div>
         )}
 
         {/* Comment Input */}
         {user ? (
-          <form onSubmit={handleComment} className="mt-4 flex gap-2">
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Write a comment..."
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-full text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-              type="submit"
-              disabled={!newComment.trim() || submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
-            >
-              Send
-            </button>
+          <form onSubmit={handleComment} className="mt-4">
+            {replyTo && (
+              <div className="flex items-center justify-between mb-2 px-3 py-1.5 bg-gray-50 dark:bg-slate-800 rounded-full text-xs text-gray-600 dark:text-gray-300">
+                <span>
+                  Replying to{" "}
+                  <span className="font-medium">{replyTo.name}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setReplyTo(null)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder={
+                  replyTo ? `Reply to ${replyTo.name}...` : "Write a comment..."
+                }
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-full text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="submit"
+                disabled={!newComment.trim() || submitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+              >
+                Send
+              </button>
+            </div>
           </form>
         ) : (
           <button
@@ -568,6 +625,57 @@ export default function PostDetailPage() {
             className="mt-4 w-full py-2.5 border border-gray-300 dark:border-slate-600 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
           >
             Log in to comment
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CommentRow({
+  comment,
+  profile,
+  canReply,
+  onReply,
+}: {
+  comment: Comment;
+  profile: ProfileSnippet | null | undefined;
+  canReply: boolean;
+  onReply: () => void;
+}) {
+  return (
+    <div className="flex gap-3">
+      {profile?.photo_url ? (
+        <Image
+          src={profile.photo_url}
+          alt={profile.name}
+          width={32}
+          height={32}
+          className="w-8 h-8 rounded-full object-cover shrink-0"
+        />
+      ) : (
+        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-sm shrink-0">
+          {(profile?.name ?? comment.author_name)[0]?.toUpperCase()}
+        </div>
+      )}
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {profile?.name ?? comment.author_name}
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {timeAgo(comment.created_at)}
+          </span>
+        </div>
+        <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">
+          {comment.content}
+        </p>
+        {canReply && (
+          <button
+            onClick={onReply}
+            className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mt-1"
+          >
+            Reply
           </button>
         )}
       </div>

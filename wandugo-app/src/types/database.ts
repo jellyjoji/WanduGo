@@ -64,12 +64,14 @@ export interface Database {
           created_at: string;
           session_id: string;
           author_name: string;
+          parent_id: string | null;
         };
         Insert: {
           post_id: string;
           content: string;
           session_id: string;
           author_name: string;
+          parent_id?: string | null;
         };
         Update: {
           content?: string;
