@@ -631,8 +631,8 @@ export default function PostDetailPage() {
       {/* Edit Modal */}
       {editing && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg max-h-[90dvh] shadow-xl flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-slate-700 shrink-0">
               <h2 className="font-semibold text-gray-900 dark:text-gray-100">
                 Edit Post
               </h2>
@@ -656,7 +656,11 @@ export default function PostDetailPage() {
               </button>
             </div>
 
-            <form onSubmit={handleEdit} className="p-5 space-y-4">
+            <form
+              onSubmit={handleEdit}
+              className="flex flex-col flex-1 min-h-0"
+            >
+              <div className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
               {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -816,7 +820,9 @@ export default function PostDetailPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              </div>
+
+              <div className="flex gap-3 p-5 pt-3 border-t border-gray-200 dark:border-slate-700 shrink-0">
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
