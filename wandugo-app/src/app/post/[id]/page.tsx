@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "@/contexts/LocationContext";
@@ -48,8 +48,17 @@ export default function PostDetailPage() {
   const [editContent, setEditContent] = useState("");
   const [editCategory, setEditCategory] = useState<PostCategory>("community");
   const [editPrice, setEditPrice] = useState("");
+  const [editLocationText, setEditLocationText] = useState("");
+  const [editLat, setEditLat] = useState<number | null>(null);
+  const [editLng, setEditLng] = useState<number | null>(null);
+  const [editImages, setEditImages] = useState<
+    { url: string; file?: File }[]
+  >([]);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const editAutocompleteInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+  const MAX_EDIT_IMAGES = 5;
   const { notify } = useNotifications();
 
   // Re-derive isOwner once auth state has fully resolved (prevents race condition
@@ -276,8 +285,59 @@ export default function PostDetailPage() {
     setEditPrice(
       post.price != null && post.price > 0 ? String(post.price) : "",
     );
+    setEditLocationText(post.location_text);
+    setEditLat(post.lat);
+    setEditLng(post.lng);
+    setEditImages(getPostImages(post).map((url) => ({ url })));
     setEditing(true);
   }
+
+  function handleEditImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    const room = MAX_EDIT_IMAGES - editImages.length;
+    const accepted = files.slice(0, room);
+    setEditImages((prev) => [
+      ...prev,
+      ...accepted.map((f) => ({ url: URL.createObjectURL(f), file: f })),
+    ]);
+    e.target.value = "";
+  }
+
+  function removeEditImage(index: number) {
+    setEditImages((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  // Google Places autocomplete for the location field in the edit modal
+  useEffect(() => {
+    if (!editing || !editAutocompleteInputRef.current) return;
+
+    import("@googlemaps/js-api-loader").then(
+      ({ setOptions, importLibrary }) => {
+        setOptions({
+          key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+          v: "weekly",
+        });
+        importLibrary("places").then(() => {
+          const autocomplete = new google.maps.places.Autocomplete(
+            editAutocompleteInputRef.current!,
+            {
+              componentRestrictions: { country: "ca" },
+              fields: ["formatted_address", "geometry"],
+            },
+          );
+          autocomplete.addListener("place_changed", () => {
+            const place = autocomplete.getPlace();
+            if (place.geometry?.location) {
+              setEditLocationText(place.formatted_address || "");
+              setEditLat(place.geometry.location.lat());
+              setEditLng(place.geometry.location.lng());
+            }
+          });
+        });
+      },
+    );
+  }, [editing]);
 
   async function handleEdit(e: React.FormEvent) {
     e.preventDefault();
@@ -285,14 +345,39 @@ export default function PostDetailPage() {
       return;
     setEditSubmitting(true);
 
+    const image_urls: string[] = [];
+    for (const img of editImages) {
+      if (!img.file) {
+        image_urls.push(img.url);
+        continue;
+      }
+      const form = new FormData();
+      form.append("file", img.file);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok) {
+        alert(`Image upload failed: ${json.error}`);
+        setEditSubmitting(false);
+        return;
+      }
+      image_urls.push(json.url);
+    }
+
+    const updates = {
+      title: editTitle.trim(),
+      content: editContent.trim(),
+      category: editCategory,
+      price: editPrice ? parseFloat(editPrice) : null,
+      location_text: editLocationText.trim() || post.location_text,
+      lat: editLat ?? post.lat,
+      lng: editLng ?? post.lng,
+      image_url: image_urls[0] ?? null,
+      image_urls,
+    };
+
     const { error } = await supabase
       .from("posts")
-      .update({
-        title: editTitle.trim(),
-        content: editContent.trim(),
-        category: editCategory,
-        price: editPrice ? parseFloat(editPrice) : null,
-      })
+      .update(updates)
       .eq("id", post.id)
       .eq("session_id", getSessionId());
 
@@ -302,13 +387,7 @@ export default function PostDetailPage() {
       return;
     }
 
-    setPost({
-      ...post,
-      title: editTitle.trim(),
-      content: editContent.trim(),
-      category: editCategory,
-      price: editPrice ? parseFloat(editPrice) : null,
-    });
+    setPost({ ...post, ...updates });
     setEditing(false);
     setEditSubmitting(false);
   }
@@ -646,6 +725,93 @@ export default function PostDetailPage() {
                   />
                 </div>
               )}
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Location
+                </label>
+                <input
+                  ref={editAutocompleteInputRef}
+                  type="text"
+                  value={editLocationText}
+                  onChange={(e) => setEditLocationText(e.target.value)}
+                  placeholder="Search for a location in Canada..."
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (lat && lng) {
+                      setEditLat(lat);
+                      setEditLng(lng);
+                      setEditLocationText("📍 Current location");
+                    }
+                  }}
+                  className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  📍 Use my current location
+                </button>
+              </div>
+
+              {/* Photos */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Photos{" "}
+                  <span className="text-gray-400 font-normal">
+                    (optional, up to {MAX_EDIT_IMAGES})
+                  </span>
+                </label>
+                <input
+                  ref={editFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleEditImageChange}
+                  className="hidden"
+                />
+                <div className="grid grid-cols-3 gap-2">
+                  {editImages.map((img, i) => (
+                    <div key={img.url} className="relative aspect-square">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img.url}
+                        alt={`Preview ${i + 1}`}
+                        className="w-full h-full object-cover rounded-xl border border-gray-200 dark:border-slate-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeEditImage(i)}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black/80"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {editImages.length < MAX_EDIT_IMAGES && (
+                    <button
+                      type="button"
+                      onClick={() => editFileInputRef.current?.click()}
+                      className="aspect-square border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
+                    >
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 19.5h18M12 3v9m0 0l-3-3m3 3l3-3"
+                        />
+                      </svg>
+                      <span className="text-xs">Add</span>
+                    </button>
+                  )}
+                </div>
+              </div>
 
               <div className="flex gap-3 pt-2">
                 <button
