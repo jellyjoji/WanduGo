@@ -14,6 +14,7 @@ import {
 } from "@/lib/utils";
 import { useLocation } from "@/contexts/LocationContext";
 import { setCachedPost } from "@/lib/postCache";
+import { getSessionId } from "@/lib/session";
 import ImageCarousel from "@/components/ImageCarousel";
 
 interface PostCardProps {
@@ -27,16 +28,30 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
   const distance =
     lat && lng ? haversineDistance(lat, lng, post.lat, post.lng) : null;
   const images = getPostImages(post);
+  const isMine = post.session_id === getSessionId();
 
   return (
     <Link href={`/post/${post.id}`} className="block" onClick={() => setCachedPost(post)}>
-      <article className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-4 hover:shadow-md transition-shadow">
+      <article
+        className={`rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow ${
+          isMine
+            ? "bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 border-l-4 border-l-blue-500"
+            : "bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700"
+        }`}
+      >
         <div className="flex items-start justify-between mb-2">
-          <span
-            className={`text-xs font-medium px-2 py-1 rounded-full ${CATEGORY_COLORS[post.category] || "bg-gray-100 text-gray-800"}`}
-          >
-            {CATEGORY_LABELS[post.category] || post.category}
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className={`text-xs font-medium px-2 py-1 rounded-full ${CATEGORY_COLORS[post.category] || "bg-gray-100 text-gray-800"}`}
+            >
+              {CATEGORY_LABELS[post.category] || post.category}
+            </span>
+            {isMine && (
+              <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-600 text-white">
+                My Post
+              </span>
+            )}
+          </div>
           {distance !== null && (
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatDistance(distance)}
