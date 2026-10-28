@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { href: "/jobs", label: "Jobs", emoji: "💼" },
   { href: "/community", label: "Community", emoji: "👥" },
+  { href: "/jobs", label: "Jobs", emoji: "💼" },
   { href: "/marketplace", label: "Market", emoji: "🛒" },
   { href: "/housing", label: "Housing", emoji: "🏠" },
 ];
