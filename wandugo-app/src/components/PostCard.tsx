@@ -35,7 +35,7 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
       <article
         className={`rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow ${
           isMine
-            ? "bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 border-l-4 border-l-blue-500"
+            ? "bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
             : "bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700"
         }`}
       >
