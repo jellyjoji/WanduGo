@@ -551,6 +551,7 @@ export default function PostDetailPage() {
             alt={post.title}
             className="w-full h-80 rounded-xl mb-4"
             priority
+            enableLightbox
           />
         )}
 

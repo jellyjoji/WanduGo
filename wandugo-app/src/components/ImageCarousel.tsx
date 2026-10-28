@@ -2,12 +2,14 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import ImageLightbox from "@/components/ImageLightbox";
 
 interface ImageCarouselProps {
   images: string[];
   alt: string;
   className?: string;
   priority?: boolean;
+  enableLightbox?: boolean;
 }
 
 export default function ImageCarousel({
@@ -15,8 +17,10 @@ export default function ImageCarousel({
   alt,
   className = "",
   priority = false,
+  enableLightbox = false,
 }: ImageCarouselProps) {
   const [index, setIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   if (images.length === 0) return null;
@@ -38,7 +42,10 @@ export default function ImageCarousel({
         {images.map((src, i) => (
           <div
             key={src}
-            className="relative h-full w-full flex-shrink-0 snap-center"
+            onClick={() => enableLightbox && setLightboxIndex(i)}
+            className={`relative h-full w-full flex-shrink-0 snap-center ${
+              enableLightbox ? "cursor-zoom-in" : ""
+            }`}
           >
             <Image
               src={src}
@@ -68,6 +75,15 @@ export default function ImageCarousel({
             ))}
           </div>
         </>
+      )}
+
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={images}
+          alt={alt}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
     </div>
   );
