@@ -9,6 +9,7 @@ import {
   haversineDistance,
   formatDistance,
   timeAgo,
+  getPostImages,
   CATEGORY_LABELS,
   CATEGORY_COLORS,
 } from "@/lib/utils";
@@ -19,6 +20,7 @@ import type { Post, Comment, PostCategory } from "@/types/database";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
 import Image from "next/image";
+import ImageCarousel from "@/components/ImageCarousel";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -464,17 +466,13 @@ export default function PostDetailPage() {
           {post.content}
         </p>
 
-        {post.image_url && (
-          <div className="relative w-full h-80 rounded-xl mb-4 overflow-hidden">
-            <Image
-              src={post.image_url}
-              alt={post.title}
-              fill
-              sizes="(max-width: 512px) 100vw, 512px"
-              className="object-cover"
-              priority
-            />
-          </div>
+        {getPostImages(post).length > 0 && (
+          <ImageCarousel
+            images={getPostImages(post)}
+            alt={post.title}
+            className="w-full h-80 rounded-xl mb-4"
+            priority
+          />
         )}
 
         {/* Author & Location Info */}

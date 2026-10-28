@@ -36,8 +36,8 @@ function CreatePostForm() {
   const [postLat, setPostLat] = useState<number | null>(null);
   const [postLng, setPostLng] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const autocompleteInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,11 +85,24 @@ function CreatePostForm() {
     );
   }, []);
 
+  const MAX_IMAGES = 5;
+
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    const room = MAX_IMAGES - imageFiles.length;
+    const accepted = files.slice(0, room);
+    setImageFiles((prev) => [...prev, ...accepted]);
+    setImagePreviews((prev) => [
+      ...prev,
+      ...accepted.map((f) => URL.createObjectURL(f)),
+    ]);
+    e.target.value = "";
+  }
+
+  function removeImage(index: number) {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -101,11 +114,11 @@ function CreatePostForm() {
     const resolvedName =
       user?.user_metadata?.name || getUserName() || "Anonymous";
 
-    // Upload image via server-side API route (uses service role key)
-    let image_url: string | null = null;
-    if (imageFile) {
+    // Upload images via server-side API route (uses service role key)
+    const image_urls: string[] = [];
+    for (const file of imageFiles) {
       const form = new FormData();
-      form.append("file", imageFile);
+      form.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: form });
       const json = await res.json();
       if (!res.ok) {
@@ -113,7 +126,7 @@ function CreatePostForm() {
         setSubmitting(false);
         return;
       }
-      image_url = json.url;
+      image_urls.push(json.url);
     }
 
     const { data, error } = await supabase
@@ -128,7 +141,8 @@ function CreatePostForm() {
         author_name: resolvedName,
         session_id: sessionId,
         price: price ? parseFloat(price) : null,
-        image_url,
+        image_url: image_urls[0] ?? null,
+        image_urls,
       })
       .select()
       .single();
@@ -280,56 +294,60 @@ function CreatePostForm() {
         {/* Image Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Image <span className="text-gray-400 font-normal">(optional)</span>
+            Photos{" "}
+            <span className="text-gray-400 font-normal">
+              (optional, up to {MAX_IMAGES})
+            </span>
           </label>
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple
             onChange={handleImageChange}
             className="hidden"
           />
-          {imagePreview ? (
-            <div className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-full h-48 object-cover rounded-xl border border-gray-200 dark:border-slate-600"
-              />
+          <div className="grid grid-cols-3 gap-2">
+            {imagePreviews.map((src, i) => (
+              <div key={src} className="relative aspect-square">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt={`Preview ${i + 1}`}
+                  className="w-full h-full object-cover rounded-xl border border-gray-200 dark:border-slate-600"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(i)}
+                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black/80"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            {imagePreviews.length < MAX_IMAGES && (
               <button
                 type="button"
-                onClick={() => {
-                  setImageFile(null);
-                  setImagePreview(null);
-                }}
-                className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-black/80"
+                onClick={() => fileInputRef.current?.click()}
+                className="aspect-square border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
               >
-                ✕
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 19.5h18M12 3v9m0 0l-3-3m3 3l3-3"
+                  />
+                </svg>
+                <span className="text-xs">Add</span>
               </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full h-32 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
-            >
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 19.5h18M12 3v9m0 0l-3-3m3 3l3-3"
-                />
-              </svg>
-              <span className="text-sm">Tap to add a photo</span>
-            </button>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Submit */}

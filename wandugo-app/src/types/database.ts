@@ -25,6 +25,7 @@ export interface Database {
           session_id: string;
           price: number | null;
           image_url: string | null;
+          image_urls: string[] | null;
           likes: number;
         };
         Insert: {
@@ -38,6 +39,7 @@ export interface Database {
           session_id: string;
           price?: number | null;
           image_url?: string | null;
+          image_urls?: string[] | null;
         };
         Update: {
           title?: string;
@@ -50,6 +52,7 @@ export interface Database {
           session_id?: string;
           price?: number | null;
           image_url?: string | null;
+          image_urls?: string[] | null;
           likes?: number;
         };
       };

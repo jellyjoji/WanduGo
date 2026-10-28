@@ -8,11 +8,13 @@ import {
   formatDistance,
   haversineDistance,
   timeAgo,
+  getPostImages,
   CATEGORY_LABELS,
   CATEGORY_COLORS,
 } from "@/lib/utils";
 import { useLocation } from "@/contexts/LocationContext";
 import { setCachedPost } from "@/lib/postCache";
+import ImageCarousel from "@/components/ImageCarousel";
 
 interface PostCardProps {
   post: Post;
@@ -24,6 +26,7 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
   const authorName = authorProfile?.name ?? post.author_name;
   const distance =
     lat && lng ? haversineDistance(lat, lng, post.lat, post.lng) : null;
+  const images = getPostImages(post);
 
   return (
     <Link href={`/post/${post.id}`} className="block" onClick={() => setCachedPost(post)}>
@@ -48,16 +51,12 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
           {post.content}
         </p>
 
-        {post.image_url && (
-          <div className="relative w-full h-40 rounded-lg mb-3 overflow-hidden">
-            <Image
-              src={post.image_url}
-              alt={post.title}
-              fill
-              sizes="(max-width: 512px) 100vw, 512px"
-              className="object-cover"
-            />
-          </div>
+        {images.length > 0 && (
+          <ImageCarousel
+            images={images}
+            alt={post.title}
+            className="w-full h-40 rounded-lg mb-3"
+          />
         )}
 
         {post.price !== null && post.price > 0 && (

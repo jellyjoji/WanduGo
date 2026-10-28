@@ -1,3 +1,11 @@
+import type { Post } from "@/types/database";
+
+/** Images for a post, falling back to the legacy single image_url column. */
+export function getPostImages(post: Post): string[] {
+  if (post.image_urls && post.image_urls.length > 0) return post.image_urls;
+  return post.image_url ? [post.image_url] : [];
+}
+
 /**
  * Calculate distance between two coordinates using Haversine formula.
  * Returns distance in kilometers.
