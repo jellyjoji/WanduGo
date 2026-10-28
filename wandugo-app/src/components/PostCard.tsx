@@ -70,7 +70,7 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
           <ImageCarousel
             images={images}
             alt={post.title}
-            className="w-full h-40 -mx-4 mb-3"
+            className="h-40 -mx-4 mb-3"
           />
         )}
 
