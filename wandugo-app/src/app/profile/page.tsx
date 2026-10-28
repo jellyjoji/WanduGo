@@ -455,28 +455,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl p-3 text-center border border-gray-100 dark:border-slate-700">
-            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {posts.length}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Posts</p>
-          </div>
-          <div className="bg-white dark:bg-slate-900 rounded-xl p-3 text-center border border-gray-100 dark:border-slate-700">
-            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {posts.reduce((sum, p) => sum + p.likes, 0)}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Likes</p>
-          </div>
-          <div className="bg-white dark:bg-slate-900 rounded-xl p-3 text-center border border-gray-100 dark:border-slate-700">
-            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {profile?.rating?.toFixed(1) || "-"}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Rating</p>
-          </div>
-        </div>
-
         {/* Tabs */}
         <div className="flex border-b border-gray-200 dark:border-slate-700 mb-4">
           <button
@@ -487,7 +465,7 @@ export default function ProfilePage() {
                 : "border-transparent text-gray-500 dark:text-gray-400"
             }`}
           >
-            My Posts
+            Posts <span className="text-gray-400">({posts.length})</span>
           </button>
           <button
             onClick={() => setTab("likes")}
