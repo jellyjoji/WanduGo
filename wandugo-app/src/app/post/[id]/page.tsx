@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "@/contexts/LocationContext";
@@ -16,12 +16,11 @@ import {
 import { getCachedPost } from "@/lib/postCache";
 import { getProfiles } from "@/lib/profileCache";
 import type { ProfileSnippet } from "@/lib/profileCache";
-import type { Post, Comment, PostCategory } from "@/types/database";
+import type { Post, Comment } from "@/types/database";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
 import Image from "next/image";
 import ImageCarousel from "@/components/ImageCarousel";
-import { reverseGeocode } from "@/lib/geocode";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -38,28 +37,13 @@ export default function PostDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [liked, setLiked] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
-  const [editing, setEditing] = useState(false);
   const [authorProfile, setAuthorProfile] = useState<ProfileSnippet | null>(
     null,
   );
   const [commentProfileMap, setCommentProfileMap] = useState<
     Record<string, ProfileSnippet | null>
   >({});
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
-  const [editCategory, setEditCategory] = useState<PostCategory>("community");
-  const [editPrice, setEditPrice] = useState("");
-  const [editLocationText, setEditLocationText] = useState("");
-  const [editLat, setEditLat] = useState<number | null>(null);
-  const [editLng, setEditLng] = useState<number | null>(null);
-  const [editImages, setEditImages] = useState<
-    { url: string; file?: File }[]
-  >([]);
-  const [editSubmitting, setEditSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const editAutocompleteInputRef = useRef<HTMLInputElement>(null);
-  const editFileInputRef = useRef<HTMLInputElement>(null);
-  const MAX_EDIT_IMAGES = 5;
   const { notify } = useNotifications();
 
   // Re-derive isOwner once auth state has fully resolved (prevents race condition
@@ -278,121 +262,6 @@ export default function PostDetailPage() {
     }
   }
 
-  function openEdit() {
-    if (!post) return;
-    setEditTitle(post.title);
-    setEditContent(post.content);
-    setEditCategory(post.category);
-    setEditPrice(
-      post.price != null && post.price > 0 ? String(post.price) : "",
-    );
-    setEditLocationText(post.location_text);
-    setEditLat(post.lat);
-    setEditLng(post.lng);
-    setEditImages(getPostImages(post).map((url) => ({ url })));
-    setEditing(true);
-  }
-
-  function handleEditImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length === 0) return;
-    const room = MAX_EDIT_IMAGES - editImages.length;
-    const accepted = files.slice(0, room);
-    setEditImages((prev) => [
-      ...prev,
-      ...accepted.map((f) => ({ url: URL.createObjectURL(f), file: f })),
-    ]);
-    e.target.value = "";
-  }
-
-  function removeEditImage(index: number) {
-    setEditImages((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  // Google Places autocomplete for the location field in the edit modal
-  useEffect(() => {
-    if (!editing || !editAutocompleteInputRef.current) return;
-
-    import("@googlemaps/js-api-loader").then(
-      ({ setOptions, importLibrary }) => {
-        setOptions({
-          key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-          v: "weekly",
-        });
-        importLibrary("places").then(() => {
-          const autocomplete = new google.maps.places.Autocomplete(
-            editAutocompleteInputRef.current!,
-            {
-              componentRestrictions: { country: "ca" },
-              fields: ["formatted_address", "geometry"],
-            },
-          );
-          autocomplete.addListener("place_changed", () => {
-            const place = autocomplete.getPlace();
-            if (place.geometry?.location) {
-              setEditLocationText(place.formatted_address || "");
-              setEditLat(place.geometry.location.lat());
-              setEditLng(place.geometry.location.lng());
-            }
-          });
-        });
-      },
-    );
-  }, [editing]);
-
-  async function handleEdit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!post || !editTitle.trim() || !editContent.trim() || editSubmitting)
-      return;
-    setEditSubmitting(true);
-
-    const image_urls: string[] = [];
-    for (const img of editImages) {
-      if (!img.file) {
-        image_urls.push(img.url);
-        continue;
-      }
-      const form = new FormData();
-      form.append("file", img.file);
-      const res = await fetch("/api/upload", { method: "POST", body: form });
-      const json = await res.json();
-      if (!res.ok) {
-        alert(`Image upload failed: ${json.error}`);
-        setEditSubmitting(false);
-        return;
-      }
-      image_urls.push(json.url);
-    }
-
-    const updates = {
-      title: editTitle.trim(),
-      content: editContent.trim(),
-      category: editCategory,
-      price: editPrice ? parseFloat(editPrice) : null,
-      location_text: editLocationText.trim() || post.location_text,
-      lat: editLat ?? post.lat,
-      lng: editLng ?? post.lng,
-      image_url: image_urls[0] ?? null,
-      image_urls,
-    };
-
-    const { error } = await supabase
-      .from("posts")
-      .update(updates)
-      .eq("id", post.id)
-      .eq("session_id", getSessionId());
-
-    if (error) {
-      alert("Failed to update post. Please try again.");
-      setEditSubmitting(false);
-      return;
-    }
-
-    setPost({ ...post, ...updates });
-    setEditing(false);
-    setEditSubmitting(false);
-  }
-
   async function handleDelete() {
     if (!post || deleting) return;
     if (
@@ -454,8 +323,8 @@ export default function PostDetailPage() {
         </h1>
         {isOwner && (
           <div className="flex items-center gap-1 flex-shrink-0">
-            <button
-              onClick={openEdit}
+            <Link
+              href={`/post/${postId}/edit`}
               title="Edit post"
               className="p-2 rounded-full text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
             >
@@ -472,7 +341,7 @@ export default function PostDetailPage() {
                   d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"
                 />
               </svg>
-            </button>
+            </Link>
             <button
               onClick={handleDelete}
               disabled={deleting}
@@ -627,220 +496,6 @@ export default function PostDetailPage() {
           </button>
         </div>
       </div>
-
-      {/* Edit Modal */}
-      {editing && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg max-h-[90dvh] shadow-xl grid grid-rows-[auto_1fr_auto]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-slate-700">
-              <h2 className="font-semibold text-gray-900 dark:text-gray-100">
-                Edit Post
-              </h2>
-              <button
-                onClick={() => setEditing(false)}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleEdit} className="contents">
-              <div className="p-5 space-y-4 overflow-y-auto min-h-0">
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Category
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setEditCategory(key as PostCategory)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        editCategory === key
-                          ? "bg-blue-600 text-white"
-                          : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Title */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              {/* Content */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Content
-                </label>
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  rows={5}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                />
-              </div>
-
-              {/* Price (for relevant categories) */}
-              {["marketplace", "buy-sell", "group-buy"].includes(
-                editCategory,
-              ) && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Price (optional)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={editPrice}
-                    onChange={(e) => setEditPrice(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              )}
-
-              {/* Location */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Location
-                </label>
-                <input
-                  ref={editAutocompleteInputRef}
-                  type="text"
-                  value={editLocationText}
-                  onChange={(e) => setEditLocationText(e.target.value)}
-                  placeholder="Search for a location in Canada..."
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!lat || !lng) return;
-                    setEditLat(lat);
-                    setEditLng(lng);
-                    setEditLocationText("Locating...");
-                    const address = await reverseGeocode(lat, lng);
-                    setEditLocationText(address || "📍 Current location");
-                  }}
-                  className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  📍 Use my current location
-                </button>
-              </div>
-
-              {/* Photos */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Photos{" "}
-                  <span className="text-gray-400 font-normal">
-                    (optional, up to {MAX_EDIT_IMAGES})
-                  </span>
-                </label>
-                <input
-                  ref={editFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleEditImageChange}
-                  className="hidden"
-                />
-                <div className="grid grid-cols-3 gap-2">
-                  {editImages.map((img, i) => (
-                    <div key={img.url} className="relative aspect-square">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={img.url}
-                        alt={`Preview ${i + 1}`}
-                        className="w-full h-full object-cover rounded-xl border border-gray-200 dark:border-slate-600"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeEditImage(i)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black/80"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                  {editImages.length < MAX_EDIT_IMAGES && (
-                    <button
-                      type="button"
-                      onClick={() => editFileInputRef.current?.click()}
-                      className="aspect-square border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
-                    >
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 19.5h18M12 3v9m0 0l-3-3m3 3l3-3"
-                        />
-                      </svg>
-                      <span className="text-xs">Add</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              </div>
-
-              <div className="flex gap-3 p-5 pt-3 border-t border-gray-200 dark:border-slate-700">
-                <button
-                  type="button"
-                  onClick={() => setEditing(false)}
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    editSubmitting || !editTitle.trim() || !editContent.trim()
-                  }
-                  className="flex-1 px-4 py-3 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  {editSubmitting ? "Saving…" : "Save Changes"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Comments */}
       <div className="bg-white dark:bg-slate-900 mt-2 p-4">
