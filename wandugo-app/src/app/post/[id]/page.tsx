@@ -441,7 +441,7 @@ export default function PostDetailPage() {
           <ImageCarousel
             images={getPostImages(post)}
             alt={post.title}
-            className="w-full h-80 rounded-xl mb-4"
+            className="h-80 -mx-4 mb-4"
             priority
             enableLightbox
           />
