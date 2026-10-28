@@ -40,10 +40,12 @@ export function useCategoryPosts(category: PostCategory | null) {
       if (data) {
         cache.set(key, data as Post[]);
         setPosts(data as Post[]);
+        setLoading(false);
         const profileMap = await getProfiles(
           (data as Post[]).map((p) => p.session_id),
         );
         if (!cancelled) setProfiles(profileMap);
+        return;
       }
       setLoading(false);
     }

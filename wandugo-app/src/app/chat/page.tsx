@@ -50,46 +50,65 @@ export default function ChatListPage() {
 
     if (chatData) {
       const myId = getSessionId();
-      // Get last message, member count, and other participant name for each chat
-      const chatsWithDetails = await Promise.all(
-        chatData.map(async (chat) => {
-          const { data: messages } = await supabase
-            .from("messages")
-            .select("*")
-            .eq("chat_id", chat.id)
-            .order("created_at", { ascending: false })
-            .limit(1);
 
-          const { data: members, count } = await supabase
-            .from("chat_members")
-            .select("session_id, author_name", { count: "exact" })
-            .eq("chat_id", chat.id);
+      // Batch-fetch members and messages for all chats in two queries total,
+      // instead of two per chat (avoids an N+1 round-trip fan-out).
+      const [{ data: allMembers }, { data: allMessages }] = await Promise.all([
+        supabase
+          .from("chat_members")
+          .select("chat_id, session_id, author_name")
+          .in("chat_id", chatIds),
+        supabase
+          .from("messages")
+          .select("*")
+          .in("chat_id", chatIds)
+          .order("created_at", { ascending: false }),
+      ]);
 
-          const other = members?.find((m) => m.session_id !== myId);
+      const membersByChat = new Map<string, typeof allMembers>();
+      (allMembers ?? []).forEach((m) => {
+        const list = membersByChat.get(m.chat_id) ?? [];
+        list.push(m);
+        membersByChat.set(m.chat_id, list);
+      });
 
-          return {
-            ...chat,
-            lastMessage: messages?.[0] as Message | undefined,
-            memberCount: count || 0,
-            otherUserName: other?.author_name,
-            otherSessionId: other?.session_id,
-          };
-        }),
-      );
+      const lastMessageByChat = new Map<string, Message>();
+      (allMessages ?? []).forEach((msg) => {
+        if (!lastMessageByChat.has(msg.chat_id)) {
+          lastMessageByChat.set(msg.chat_id, msg as Message);
+        }
+      });
+
+      const chatsWithDetails = chatData.map((chat) => {
+        const members = membersByChat.get(chat.id) ?? [];
+        const other = members.find((m) => m.session_id !== myId);
+        return {
+          ...chat,
+          lastMessage: lastMessageByChat.get(chat.id),
+          memberCount: members.length,
+          otherUserName: other?.author_name,
+          otherSessionId: other?.session_id,
+        };
+      });
+
+      // Paint the list immediately; fill in avatars once profiles resolve.
+      setChats(chatsWithDetails);
+      setLoading(false);
 
       const otherIds = chatsWithDetails
         .map((c) => c.otherSessionId)
         .filter((id): id is string => !!id);
       const profileMap = await getProfiles(otherIds);
 
-      setChats(
-        chatsWithDetails.map((c) => ({
+      setChats((prev) =>
+        prev.map((c) => ({
           ...c,
           otherUserPhoto: c.otherSessionId
             ? profileMap[c.otherSessionId]?.photo_url ?? null
             : null,
         })),
       );
+      return;
     }
     setLoading(false);
   }
