@@ -215,7 +215,8 @@ export default function PostDetailPage() {
     const sessionId = getSessionId();
     const authorName = getUserName();
 
-    // Check for an existing 1-on-1 chat between this user and the post author for this post
+    // Check for an existing 1-on-1 chat between this user and the post author,
+    // regardless of which post it originated from — one chat room per person.
     const { data: myMemberships } = await supabase
       .from("chat_members")
       .select("chat_id")
@@ -224,21 +225,20 @@ export default function PostDetailPage() {
     const myChatIds = myMemberships?.map((m) => m.chat_id) ?? [];
 
     if (myChatIds.length > 0) {
-      const { data: postChats } = await supabase
+      const { data: oneOnOneChats } = await supabase
         .from("chats")
         .select("id")
-        .eq("post_id", post.id)
         .eq("is_group", false)
         .in("id", myChatIds);
 
-      const postChatIds = postChats?.map((c) => c.id) ?? [];
+      const oneOnOneChatIds = oneOnOneChats?.map((c) => c.id) ?? [];
 
-      if (postChatIds.length > 0) {
+      if (oneOnOneChatIds.length > 0) {
         const { data: sharedChats } = await supabase
           .from("chat_members")
           .select("chat_id")
           .eq("session_id", post.session_id)
-          .in("chat_id", postChatIds);
+          .in("chat_id", oneOnOneChatIds);
 
         if (sharedChats && sharedChats.length > 0) {
           // Reuse the existing chat room
