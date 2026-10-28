@@ -1,7 +1,15 @@
+const PEA_COLORS = ["#FFC04A", "#63C74C", "#30B66F"];
+
 export default function LoadingSpinner() {
   return (
-    <div className="flex items-center justify-center p-8">
-      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+    <div className="flex items-center justify-center gap-2 p-8">
+      {PEA_COLORS.map((color, i) => (
+        <span
+          key={color}
+          className="w-3.5 h-3.5 rounded-full animate-bounce"
+          style={{ backgroundColor: color, animationDelay: `${i * 150}ms` }}
+        />
+      ))}
     </div>
   );
 }
