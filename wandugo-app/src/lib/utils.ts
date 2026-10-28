@@ -51,15 +51,15 @@ export function timeAgo(dateStr: string): string {
 }
 
 export const CATEGORY_LABELS: Record<string, string> = {
-  jobs: "Jobs",
   community: "Community",
+  jobs: "Jobs",
   marketplace: "Marketplace",
   housing: "Housing",
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  jobs: "bg-[#C9ECC1] text-[#1B653D]",
   community: "bg-[#EBF8E8] text-[#258D55]",
+  jobs: "bg-[#C9ECC1] text-[#1B653D]",
   marketplace: "bg-[#FEF7F1] text-[#C16510]",
   housing: "bg-[#FFF5E0] text-[#E09400]",
 };

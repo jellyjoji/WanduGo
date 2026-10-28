@@ -4,17 +4,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
-const navItems = [
-  { href: "/", label: "Feed", icon: HomeIcon, protected: false },
-  { href: "/map", label: "Map", icon: MapIcon, protected: false },
-  { href: "/create", label: "Post", icon: PlusIcon, protected: true },
-  { href: "/chat", label: "Chat", icon: ChatIcon, protected: false },
-  { href: "/profile", label: "Profile", icon: UserIcon, protected: false },
-];
+const CATEGORY_BY_PATH: Record<string, string> = {
+  "/community": "community",
+  "/jobs": "jobs",
+  "/marketplace": "marketplace",
+  "/housing": "housing",
+};
 
 export default function BottomNav() {
   const pathname = usePathname();
   const { user, openAuthModal } = useAuth();
+
+  const category = CATEGORY_BY_PATH[pathname];
+  const createHref = category ? `/create?category=${category}` : "/create";
+
+  const navItems = [
+    { href: "/", label: "Feed", icon: HomeIcon, protected: false },
+    { href: "/map", label: "Map", icon: MapIcon, protected: false },
+    { href: createHref, label: "Post", icon: PlusIcon, protected: true },
+    { href: "/chat", label: "Chat", icon: ChatIcon, protected: false },
+    { href: "/profile", label: "Profile", icon: UserIcon, protected: false },
+  ];
 
   return (
     <nav
@@ -23,7 +33,7 @@ export default function BottomNav() {
     >
       <div className="max-w-lg mx-auto flex justify-around items-stretch h-18">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href.split("?")[0];
           const needsAuth = item.protected && !user;
           const className = `flex flex-col items-center justify-center gap-1 w-full h-full min-h-12 text-xs transition-colors ${
             isActive ? "text-blue-600" : "text-gray-600 dark:text-gray-400"
