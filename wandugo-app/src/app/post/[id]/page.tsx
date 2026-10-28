@@ -21,6 +21,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
 import Image from "next/image";
 import ImageCarousel from "@/components/ImageCarousel";
+import { reverseGeocode } from "@/lib/geocode";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -742,12 +743,13 @@ export default function PostDetailPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    if (lat && lng) {
-                      setEditLat(lat);
-                      setEditLng(lng);
-                      setEditLocationText("📍 Current location");
-                    }
+                  onClick={async () => {
+                    if (!lat || !lng) return;
+                    setEditLat(lat);
+                    setEditLng(lng);
+                    setEditLocationText("Locating...");
+                    const address = await reverseGeocode(lat, lng);
+                    setEditLocationText(address || "📍 Current location");
                   }}
                   className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >

@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getSessionId, getUserName } from "@/lib/session";
 import type { PostCategory } from "@/types/database";
 import { CATEGORY_LABELS } from "@/lib/utils";
+import { reverseGeocode } from "@/lib/geocode";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function CreatePostPage() {
@@ -278,12 +279,13 @@ function CreatePostForm() {
           />
           <button
             type="button"
-            onClick={() => {
-              if (lat && lng) {
-                setPostLat(lat);
-                setPostLng(lng);
-                setLocationText("📍 Current location");
-              }
+            onClick={async () => {
+              if (!lat || !lng) return;
+              setPostLat(lat);
+              setPostLng(lng);
+              setLocationText("Locating...");
+              const address = await reverseGeocode(lat, lng);
+              setLocationText(address || "📍 Current location");
             }}
             className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
