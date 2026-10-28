@@ -142,10 +142,11 @@ export default function PostDetailPage() {
     const sessionId = getSessionId();
     const authorName = getUserName();
     const trimmed = newComment.trim();
+    const content = replyTo ? `@${replyTo.name} ${trimmed}` : trimmed;
 
     await supabase.from("comments").insert({
       post_id: postId,
-      content: trimmed,
+      content,
       session_id: sessionId,
       author_name: authorName,
       parent_id: replyTo?.id ?? null,
