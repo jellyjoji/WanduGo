@@ -465,7 +465,7 @@ export default function ProfilePage() {
                 : "border-transparent text-gray-500 dark:text-gray-400"
             }`}
           >
-            Posts <span className="text-gray-400">({posts.length})</span>
+            Posts <span className="text-gray-400">{posts.length}</span>
           </button>
           <button
             onClick={() => setTab("likes")}
