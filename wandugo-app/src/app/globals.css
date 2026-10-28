@@ -192,7 +192,7 @@ body {
 
 /* Mobile-first bottom nav spacing */
 main {
-  padding-bottom: 5rem;
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
 }
 
 /* Custom scrollbar */

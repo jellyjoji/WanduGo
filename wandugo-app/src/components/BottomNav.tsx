@@ -17,12 +17,15 @@ export default function BottomNav() {
   const { user, openAuthModal } = useAuth();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 z-50">
-      <div className="max-w-lg mx-auto flex justify-around items-center h-16">
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 z-50"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <div className="max-w-lg mx-auto flex justify-around items-stretch h-18">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const needsAuth = item.protected && !user;
-          const className = `flex flex-col items-center justify-center w-full h-full text-xs transition-colors ${
+          const className = `flex flex-col items-center justify-center gap-1 w-full h-full min-h-12 text-xs transition-colors ${
             isActive ? "text-blue-600" : "text-gray-500 dark:text-gray-400"
           }`;
           if (needsAuth) {
