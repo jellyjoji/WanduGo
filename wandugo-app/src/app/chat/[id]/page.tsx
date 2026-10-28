@@ -21,6 +21,7 @@ export default function ChatRoomPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chat, setChat] = useState<Chat | null>(null);
   const [otherUserName, setOtherUserName] = useState<string | null>(null);
+  const [otherSessionId, setOtherSessionId] = useState<string | null>(null);
   const [profileMap, setProfileMap] = useState<Record<string, ProfileSnippet | null>>({});
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -56,7 +57,10 @@ export default function ChatRoomPage() {
 
       if (members) {
         const other = members.find((m) => m.session_id !== myId);
-        if (other) setOtherUserName(other.author_name);
+        if (other) {
+          setOtherUserName(other.author_name);
+          setOtherSessionId(other.session_id);
+        }
         const ids = members.map((m) => m.session_id);
         if (ids.length > 0) getProfiles(ids).then(setProfileMap);
       }
@@ -234,6 +238,23 @@ export default function ChatRoomPage() {
             />
           </svg>
         </button>
+        {!chat?.is_group && (
+          <>
+            {otherSessionId && profileMap[otherSessionId]?.photo_url ? (
+              <Image
+                src={profileMap[otherSessionId]!.photo_url!}
+                alt={otherUserName || "User"}
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-medium text-sm shrink-0">
+                {(otherUserName || chat?.name || "?")[0]?.toUpperCase()}
+              </div>
+            )}
+          </>
+        )}
         <div className="flex-1">
           <h1 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
             {chat?.is_group

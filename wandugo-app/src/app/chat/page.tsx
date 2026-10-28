@@ -9,11 +9,15 @@ import type { Chat, Message } from "@/types/database";
 import Header from "@/components/Header";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Link from "next/link";
+import Image from "next/image";
+import { getProfiles } from "@/lib/profileCache";
 
 interface ChatWithDetails extends Chat {
   lastMessage?: Message;
   memberCount?: number;
   otherUserName?: string;
+  otherSessionId?: string;
+  otherUserPhoto?: string | null;
 }
 
 export default function ChatListPage() {
@@ -47,7 +51,7 @@ export default function ChatListPage() {
     if (chatData) {
       const myId = getSessionId();
       // Get last message, member count, and other participant name for each chat
-      const chatsWithDetails: ChatWithDetails[] = await Promise.all(
+      const chatsWithDetails = await Promise.all(
         chatData.map(async (chat) => {
           const { data: messages } = await supabase
             .from("messages")
@@ -68,11 +72,24 @@ export default function ChatListPage() {
             lastMessage: messages?.[0] as Message | undefined,
             memberCount: count || 0,
             otherUserName: other?.author_name,
-          } as ChatWithDetails;
+            otherSessionId: other?.session_id,
+          };
         }),
       );
 
-      setChats(chatsWithDetails);
+      const otherIds = chatsWithDetails
+        .map((c) => c.otherSessionId)
+        .filter((id): id is string => !!id);
+      const profileMap = await getProfiles(otherIds);
+
+      setChats(
+        chatsWithDetails.map((c) => ({
+          ...c,
+          otherUserPhoto: c.otherSessionId
+            ? profileMap[c.otherSessionId]?.photo_url ?? null
+            : null,
+        })),
+      );
     }
     setLoading(false);
   }
@@ -173,9 +190,21 @@ export default function ChatListPage() {
                 href={`/chat/${chat.id}`}
                 className="flex items-center gap-3 p-4 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow"
               >
-                <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-semibold text-lg shrink-0">
-                  {chat.is_group ? "👥" : "💬"}
-                </div>
+                {!chat.is_group && chat.otherUserPhoto ? (
+                  <Image
+                    src={chat.otherUserPhoto}
+                    alt={chat.otherUserName || "User"}
+                    width={48}
+                    height={48}
+                    className="w-12 h-12 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-semibold text-lg shrink-0">
+                    {chat.is_group
+                      ? "👥"
+                      : (chat.otherUserName || chat.name || "?")[0]?.toUpperCase()}
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
