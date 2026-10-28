@@ -312,7 +312,7 @@ export default function PostDetailPage() {
   if (loading) return <LoadingSpinner />;
   if (!post)
     return (
-      <div className="text-center py-12 text-gray-500">Post not found</div>
+      <div className="text-center py-12 text-gray-600 dark:text-gray-400">Post not found</div>
     );
 
   const distance =
@@ -419,7 +419,7 @@ export default function PostDetailPage() {
             {CATEGORY_LABELS[post.category] || post.category}
           </span>
           {distance !== null && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-gray-600 dark:text-gray-400">
               {formatDistance(distance)}
             </span>
           )}
@@ -466,7 +466,7 @@ export default function PostDetailPage() {
             <p className="font-medium text-gray-900 dark:text-gray-100">
               {authorProfile?.name ?? post.author_name}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               <button
                 onClick={() =>
                   window.open(
@@ -496,7 +496,7 @@ export default function PostDetailPage() {
             }`}
           >
             <svg
-              className={`w-5 h-5 transition-colors ${liked ? "text-red-500" : "text-gray-400"}`}
+              className={`w-5 h-5 transition-colors ${liked ? "text-red-500" : "text-gray-600 dark:text-gray-400"}`}
               fill={liked ? "currentColor" : "none"}
               stroke={liked ? "none" : "currentColor"}
               strokeWidth={1.5}
@@ -526,7 +526,7 @@ export default function PostDetailPage() {
         </h3>
 
         {comments.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-4">
             No comments yet. Be the first!
           </p>
         ) : (
@@ -592,7 +592,7 @@ export default function PostDetailPage() {
                 <button
                   type="button"
                   onClick={() => setReplyTo(null)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                 >
                   ✕
                 </button>
@@ -661,7 +661,7 @@ function CommentRow({
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
             {profile?.name ?? comment.author_name}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-gray-600 dark:text-gray-400">
             {timeAgo(comment.created_at)}
           </span>
         </div>
@@ -671,7 +671,7 @@ function CommentRow({
         {canReply && (
           <button
             onClick={onReply}
-            className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mt-1"
+            className="text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mt-1"
           >
             Reply
           </button>

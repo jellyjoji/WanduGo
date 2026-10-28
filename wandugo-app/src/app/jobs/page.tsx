@@ -35,7 +35,7 @@ export default function JobsPage() {
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               💼 Jobs
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Find jobs & post openings nearby
             </p>
           </div>
@@ -53,10 +53,10 @@ export default function JobsPage() {
           <LoadingSpinner />
         ) : filteredAndSorted.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400">
               No job postings nearby
             </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Be the first to post a job!
             </p>
           </div>

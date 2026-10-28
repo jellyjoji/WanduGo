@@ -76,7 +76,7 @@ export default function InstallPrompt() {
           <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
             Install WanduGo
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-gray-600 dark:text-gray-400">
             {iosMode
               ? 'Tap the share icon below, then "Add to Home Screen"'
               : deferredPrompt
@@ -87,7 +87,7 @@ export default function InstallPrompt() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleDismiss}
-            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
             aria-label="Dismiss"
           >
             <svg

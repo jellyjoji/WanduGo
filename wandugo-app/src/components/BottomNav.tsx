@@ -26,7 +26,7 @@ export default function BottomNav() {
           const isActive = pathname === item.href;
           const needsAuth = item.protected && !user;
           const className = `flex flex-col items-center justify-center gap-1 w-full h-full min-h-12 text-xs transition-colors ${
-            isActive ? "text-blue-600" : "text-gray-500 dark:text-gray-400"
+            isActive ? "text-blue-600" : "text-gray-600 dark:text-gray-400"
           }`;
           if (needsAuth) {
             return (

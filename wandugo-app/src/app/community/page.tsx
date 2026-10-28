@@ -35,7 +35,7 @@ export default function CommunityPage() {
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               👥 Community
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Connect with people nearby
             </p>
           </div>
@@ -53,10 +53,10 @@ export default function CommunityPage() {
           <LoadingSpinner />
         ) : filteredAndSorted.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400">
               No community posts nearby
             </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Start the conversation!
             </p>
           </div>

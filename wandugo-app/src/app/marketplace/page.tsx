@@ -49,7 +49,7 @@ export default function MarketplacePage() {
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               🛒 Marketplace
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Buy and sell nearby
             </p>
           </div>
@@ -85,10 +85,10 @@ export default function MarketplacePage() {
           <LoadingSpinner />
         ) : filteredAndSorted.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400">
               No items for sale nearby
             </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               List something!
             </p>
           </div>

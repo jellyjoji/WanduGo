@@ -188,7 +188,7 @@ export default function ChatRoomPage() {
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
             Sign in to view this chat
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             You need to be signed in to read and send messages.
           </p>
         </div>
@@ -241,7 +241,7 @@ export default function ChatRoomPage() {
               : otherUserName || chat?.name || "Chat"}
           </h1>
           {chat?.is_group && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               Group Chat
             </p>
           )}
@@ -251,7 +251,7 @@ export default function ChatRoomPage() {
       {/* Messages — min-h-0 is required so flex-1 + overflow-y-auto actually scrolls */}
       <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-slate-950">
         {messages.length === 0 && (
-          <p className="text-center text-gray-500 dark:text-gray-400 text-sm py-8">
+          <p className="text-center text-gray-600 dark:text-gray-400 text-sm py-8">
             Start the conversation!
           </p>
         )}
@@ -280,7 +280,7 @@ export default function ChatRoomPage() {
               )}
               <div className={`max-w-[75%] ${isMe ? "order-1" : ""}`}>
                 {!isMe && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 ml-1">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 ml-1">
                     {senderProfile?.name ?? msg.author_name}
                   </p>
                 )}
@@ -300,7 +300,7 @@ export default function ChatRoomPage() {
                   )}
                 </div>
                 <p
-                  className={`text-xs text-gray-400 dark:text-gray-500 mt-1 ${isMe ? "text-right mr-1" : "ml-1"}`}
+                  className={`text-xs text-gray-600 dark:text-gray-400 mt-1 ${isMe ? "text-right mr-1" : "ml-1"}`}
                 >
                   {timeAgo(msg.created_at)}
                 </p>
@@ -325,7 +325,7 @@ export default function ChatRoomPage() {
             <button
               type="button"
               onClick={shareLocation}
-              className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
               title="Share location"
             >
               <svg

@@ -261,7 +261,7 @@ export default function ProfilePage() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
               Sign in to view your profile
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Create an account or sign in to manage your profile and posts.
             </p>
           </div>
@@ -412,7 +412,7 @@ export default function ProfilePage() {
                     {bio || "No bio set"}
                   </p>
                   {profile?.location_text && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                       📍 {profile.location_text}
                     </p>
                   )}
@@ -462,17 +462,20 @@ export default function ProfilePage() {
             className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
               tab === "posts"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 dark:text-gray-400"
+                : "border-transparent text-gray-600 dark:text-gray-400"
             }`}
           >
-            Posts <span className="text-gray-400">{posts.length}</span>
+            Posts{" "}
+            <span className="text-gray-600 dark:text-gray-400">
+              {posts.length}
+            </span>
           </button>
           <button
             onClick={() => setTab("likes")}
             className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
               tab === "likes"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 dark:text-gray-400"
+                : "border-transparent text-gray-600 dark:text-gray-400"
             }`}
           >
             Likes
@@ -482,7 +485,7 @@ export default function ProfilePage() {
             className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
               tab === "comments"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 dark:text-gray-400"
+                : "border-transparent text-gray-600 dark:text-gray-400"
             }`}
           >
             Activity
@@ -492,7 +495,7 @@ export default function ProfilePage() {
         {/* Content */}
         {tab === "posts" ? (
           posts.length === 0 ? (
-            <p className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-center py-8 text-gray-600 dark:text-gray-400 text-sm">
               No posts yet
             </p>
           ) : (
@@ -508,7 +511,7 @@ export default function ProfilePage() {
           )
         ) : tab === "likes" ? (
           likedPosts.length === 0 ? (
-            <p className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-center py-8 text-gray-600 dark:text-gray-400 text-sm">
               No liked posts yet
             </p>
           ) : (
@@ -523,7 +526,7 @@ export default function ProfilePage() {
             </div>
           )
         ) : activity.length === 0 ? (
-          <p className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+          <p className="text-center py-8 text-gray-600 dark:text-gray-400 text-sm">
             No activity yet
           </p>
         ) : (
@@ -551,7 +554,7 @@ export default function ProfilePage() {
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">
                       <span className="font-medium text-blue-600 dark:text-blue-400">
                         Posted
                       </span>
@@ -561,7 +564,7 @@ export default function ProfilePage() {
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {item.post.title}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       {CATEGORY_LABELS[item.post.category] || item.post.category}
                     </p>
                   </div>
@@ -588,7 +591,7 @@ export default function ProfilePage() {
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">
                       <span className="font-medium text-green-600 dark:text-green-400">
                         Commented
                       </span>
@@ -613,7 +616,7 @@ export default function ProfilePage() {
         <div className="pt-6 pb-8 flex justify-center">
           <button
             onClick={signOut}
-            className="text-xs text-gray-400 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-400 transition-colors"
+            className="text-xs text-gray-600 dark:text-gray-400 hover:text-red-400 dark:hover:text-red-400 transition-colors"
           >
             Log out
           </button>

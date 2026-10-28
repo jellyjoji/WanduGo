@@ -35,7 +35,7 @@ export default function HousingPage() {
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               🏠 Housing
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Find housing & rentals nearby
             </p>
           </div>
@@ -53,10 +53,10 @@ export default function HousingPage() {
           <LoadingSpinner />
         ) : filteredAndSorted.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400">
               No housing postings nearby
             </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Be the first to post!
             </p>
           </div>

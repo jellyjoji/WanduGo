@@ -123,7 +123,7 @@ export default function ChatListPage() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
               Sign in to view your chats
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Create an account or sign in to start conversations.
             </p>
           </div>
@@ -158,10 +158,10 @@ export default function ChatListPage() {
           <LoadingSpinner />
         ) : chats.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400 mb-2">
+            <p className="text-gray-600 dark:text-gray-400 mb-2">
               No conversations yet
             </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Start by messaging someone from a post!
             </p>
           </div>
@@ -184,18 +184,18 @@ export default function ChatListPage() {
                         : chat.otherUserName || chat.name || "Chat"}
                     </h3>
                     {chat.lastMessage && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 ml-2">
+                      <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0 ml-2">
                         {timeAgo(chat.lastMessage.created_at)}
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                     {chat.lastMessage
                       ? `${chat.lastMessage.author_name}: ${chat.lastMessage.content}`
                       : "No messages yet"}
                   </p>
                   {chat.is_group && chat.memberCount && (
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                    <span className="text-xs text-gray-600 dark:text-gray-400">
                       {chat.memberCount} members
                     </span>
                   )}

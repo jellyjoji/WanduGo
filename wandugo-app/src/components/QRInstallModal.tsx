@@ -79,7 +79,7 @@ export default function QRInstallModal({ onClose }: QRInstallModalProps) {
           <img src="/logo.svg" alt="WanduGo" className="h-8 w-auto" />
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg"
+            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors rounded-lg"
             aria-label="Close"
           >
             <svg
@@ -116,7 +116,7 @@ export default function QRInstallModal({ onClose }: QRInstallModalProps) {
           <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
             Scan to open on another device
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-gray-600 dark:text-gray-400">
             Then tap{" "}
             <span className="font-medium">Share → Add to Home Screen</span> on
             iOS, or use Chrome&apos;s install button on Android.
@@ -124,7 +124,7 @@ export default function QRInstallModal({ onClose }: QRInstallModalProps) {
         </div>
 
         <div className="w-full border-t border-gray-100 dark:border-slate-700 pt-3">
-          <p className="text-center text-xs font-mono text-gray-400 dark:text-gray-500 break-all select-all">
+          <p className="text-center text-xs font-mono text-gray-600 dark:text-gray-400 break-all select-all">
             {typeof window !== "undefined" ? "https://wandugo.vercel.app/" : ""}
           </p>
         </div>

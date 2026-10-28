@@ -184,7 +184,7 @@ export default function EditPostPage() {
   if (notOwner || !post) {
     return (
       <div className="max-w-lg mx-auto px-4 py-12 text-center">
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-gray-600 dark:text-gray-400">
           You can only edit your own posts.
         </p>
         <button
@@ -330,7 +330,7 @@ export default function EditPostPage() {
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Photos{" "}
-            <span className="text-gray-400 font-normal">
+            <span className="text-gray-600 dark:text-gray-400 font-normal">
               (optional, up to {MAX_IMAGES})
             </span>
           </label>
@@ -364,7 +364,7 @@ export default function EditPostPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="aspect-square border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
+                className="aspect-square border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
               >
                 <svg
                   className="w-6 h-6"

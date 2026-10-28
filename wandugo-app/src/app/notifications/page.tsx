@@ -105,7 +105,7 @@ export default function NotificationsPage() {
           <LoadingSpinner />
         ) : notifications.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No notifications</p>
+            <p className="text-gray-600 dark:text-gray-400">No notifications</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -126,7 +126,7 @@ export default function NotificationsPage() {
                   <p className="text-sm text-gray-900 dark:text-gray-100">
                     {n.content}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     {timeAgo(n.created_at)}
                   </p>
                 </div>

@@ -53,7 +53,7 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
             )}
           </div>
           {distance !== null && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-gray-600 dark:text-gray-400">
               {formatDistance(distance)}
             </span>
           )}
@@ -78,7 +78,7 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
           <p className="text-lg font-bold text-blue-600 mb-2">${post.price}</p>
         )}
 
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
           <div className="flex items-center gap-2">
             {authorProfile?.photo_url ? (
               <Image
@@ -122,7 +122,7 @@ export default function PostCard({ post, authorProfile }: PostCardProps) {
         </div>
 
         {post.likes > 0 && (
-          <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+          <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
             <svg
               className="w-4 h-4 text-red-400"
               fill="currentColor"

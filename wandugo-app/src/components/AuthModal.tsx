@@ -95,7 +95,7 @@ export default function AuthModal() {
           </h2>
           <button
             onClick={closeAuthModal}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300"
           >
             <svg
               className="w-5 h-5"
@@ -127,7 +127,7 @@ export default function AuthModal() {
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
                   tab === t
                     ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
-                    : "text-gray-500 dark:text-gray-400"
+                    : "text-gray-600 dark:text-gray-400"
                 }`}
               >
                 {t === "login" ? "Log in" : "Sign up"}
@@ -173,7 +173,7 @@ export default function AuthModal() {
               </button>
             </form>
 
-            <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
               <button
                 onClick={() => {
                   setForgotPassword(false);
@@ -259,7 +259,7 @@ export default function AuthModal() {
               </button>
             </form>
 
-            <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
               {tab === "login"
                 ? "Don't have an account? "
                 : "Already have an account? "}
@@ -274,7 +274,7 @@ export default function AuthModal() {
               </button>
             </p>
 
-            <p className="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">
+            <p className="mt-3 text-center text-xs text-gray-600 dark:text-gray-400">
               You can browse WanduGo without an account.
             </p>
           </>

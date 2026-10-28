@@ -297,7 +297,7 @@ function CreatePostForm() {
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Photos{" "}
-            <span className="text-gray-400 font-normal">
+            <span className="text-gray-600 dark:text-gray-400 font-normal">
               (optional, up to {MAX_IMAGES})
             </span>
           </label>
@@ -331,7 +331,7 @@ function CreatePostForm() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="aspect-square border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
+                className="aspect-square border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
               >
                 <svg
                   className="w-6 h-6"
